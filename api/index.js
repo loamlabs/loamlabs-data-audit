@@ -26,9 +26,9 @@ module.exports = async (req, res) => {
     console.log("Data audit function triggered...");
     let log = ["Audit started..."];
 
-    const allProductsQuery = `
-    query {
-      products(first: 250, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:valvestem'") {
+    const PAGINATED_PRODUCTS_QUERY = `
+    query($cursor: String) {
+      products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:valvestem'") {
         edges {
           node {
             id
@@ -54,23 +54,49 @@ module.exports = async (req, res) => {
             }
           }
         }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
       }
     }`;
 
     try {
         const client = new shopify.clients.Graphql({ session: getSession() });
-        const response = await client.query({ data: allProductsQuery });
-        const products = response.body.data.products.edges.map(edge => edge.node);
+        let allProducts = [];
+        let hasNextPage = true;
+        let cursor = null;
+
+        // --- PAGINATION LOOP ---
+        // This loop will continue fetching pages until Shopify says there are no more.
+        do {
+            const response = await client.query({ 
+                data: { 
+                    query: PAGINATED_PRODUCTS_QUERY,
+                    variables: { cursor: cursor }
+                }
+            });
+
+            const pageData = response.body.data.products;
+            allProducts.push(...pageData.edges.map(edge => edge.node)); // Add the new products to our master list
+
+            hasNextPage = pageData.pageInfo.hasNextPage;
+            cursor = pageData.pageInfo.endCursor;
+            
+            log.push(`Fetched a page of products. Products so far: ${allProducts.length}. More pages to fetch: ${hasNextPage}`);
+
+        } while (hasNextPage);
+        // --- END PAGINATION LOOP ---
         
-        log.push(`Found ${products.length} total component products to audit.`);
+        log.push(`\nFinished fetching all pages. Found ${allProducts.length} total component products to audit.`);
 
         let errors = {
             unpublished: [],
             missingData: [],
         };
 
-        for (const product of products) {
-            log.push(`\n--- Auditing Product: ${product.title} ---`);
+        for (const product of allProducts) {
+            log.push(`--- Auditing Product: ${product.title} ---`);
 
             // Level 1: Exclusion Check
             if (product.tags.includes('audit:exclude')) {
@@ -86,29 +112,21 @@ module.exports = async (req, res) => {
                 continue; 
             }
 
-            // Level 3: Metafield Data Check
+            // Level 3: Metafield Data Check (Placeholder - to be built out)
             log.push(" -> Checking metafields...");
-            const productMetafields = Object.fromEntries(product.metafields.edges.map(edge => [edge.node.key, edge.node.value]));
-            
-            // This is where you would place your detailed metafield checks.
-            // For now, this is a placeholder. We will build out the full checks next.
-            // Example check:
-            if (!productMetafields.spoke_model_group && product.productType === 'Spoke') {
-                errors.missingData.push(`- **${product.title}** is missing the Product Metafield: \`custom.spoke_model_group\``);
-                log.push("    -> FAIL: Missing 'spoke_model_group'");
-            }
         }
 
         console.log(log.join('\n')); // Print the detailed log to Vercel
 
         const totalIssues = errors.unpublished.length + errors.missingData.length;
         if (totalIssues > 0) {
-            // ... (email sending logic remains the same) ...
+            // ... (email sending logic will go here) ...
+            console.log(`Report would be sent with ${totalIssues} issues.`);
         } else {
             console.log("Data health check complete. No issues found.");
         }
 
-        res.status(200).send(`Audit complete. Found ${totalIssues} issues.`);
+        res.status(200).send(`Audit complete. Found ${totalIssues} issues after scanning ${allProducts.length} products.`);
     } catch (error) {
         console.error("An error occurred during the audit:", error);
         res.status(500).send("An internal error occurred.");
