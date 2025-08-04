@@ -141,8 +141,8 @@ module.exports = async (req, res) => {
                 ['spoke_model_group', 'inventory_monitoring_enabled', 'inventory_alert_threshold'].forEach(key => {
                     if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`custom.${key}\``);
                 });
-                if (product.vendor !== 'Berd' && !productMetafields.spoke_cross_sectional_area_mm2) {
-                    productErrors.push(`Missing Product Metafield for non-Berd spoke: \`custom.spoke_cross_sectional_area_mm2\``);
+                if (product.vendor !== 'Berd' && !productMetafields.spoke_cross_section_area_mm2) {
+                    productErrors.push(`Missing Product Metafield for non-Berd spoke: \`custom.spoke_cross_section_area_mm2\``);
                 }
             }
 
