@@ -98,14 +98,13 @@ module.exports = async (req, res) => {
             const productMetafields = Object.fromEntries(product.metafields.edges.map(edge => [edge.node.key, edge.node.value]));
             const productErrors = [];
 
-            // --- RIM CHECKS (WITH NEW LOGIC) ---
+            // --- RIM CHECKS ---
             if (product.tags.includes('component:rim')) {
-                // Corrected metafield name and added conditional check
                 const washerPolicy = productMetafields.rim_washer_policy;
                 if (!washerPolicy) {
                     productErrors.push(`Missing Product Metafield: \`custom.rim_washer_policy\``);
                 } else if (washerPolicy === 'Optional' || washerPolicy === 'Mandatory') {
-                    if (!productMetafields.nipple_washer_thickness) { // Corrected name
+                    if (!productMetafields.nipple_washer_thickness) { // Corrected name from your feedback
                         productErrors.push(`Missing Product Metafield for washer policy "${washerPolicy}": \`custom.nipple_washer_thickness\``);
                     }
                 }
@@ -120,17 +119,41 @@ module.exports = async (req, res) => {
 
             // --- HUB CHECKS ---
             if (product.tags.includes('component:hub')) {
-                // (Hub logic remains the same)
+                const hubType = productMetafields.hub_type;
+                ['hub_type', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right'].forEach(key => {
+                    if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`custom.${key}\``);
+                });
+                if (hubType === 'Classic Flange' && !productMetafields.hub_spoke_hole_diameter) {
+                    productErrors.push(`Missing Product Metafield for 'Classic Flange' hub: \`custom.hub_spoke_hole_diameter\``);
+                }
+                if (hubType === 'Straight Pull') {
+                    product.variants.edges.forEach(({ node: variant }) => {
+                        const variantMetafields = Object.fromEntries(variant.metafields.edges.map(edge => [edge.node.key, edge.node.value]));
+                        if (!variantMetafields.hub_sp_offset_spoke_hole_left || !variantMetafields.hub_sp_offset_spoke_hole_right) {
+                            productErrors.push(`Variant "${variant.title}" is missing 'Straight Pull' Metafields: \`custom.hub_sp_offset_spoke_hole_left/right\``);
+                        }
+                    });
+                }
             }
 
             // --- SPOKE CHECKS ---
             if (product.tags.includes('component:spoke')) {
-                // (Spoke logic remains the same)
+                ['spoke_model_group', 'inventory_monitoring_enabled', 'inventory_alert_threshold'].forEach(key => {
+                    if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`custom.${key}\``);
+                });
+                if (product.vendor !== 'Berd' && !productMetafields.spoke_cross_sectional_area_mm2) {
+                    productErrors.push(`Missing Product Metafield for non-Berd spoke: \`custom.spoke_cross_sectional_area_mm2\``);
+                }
             }
 
             // --- VALVE STEM CHECKS ---
             if (product.tags.includes('component:valvestem')) {
-                // (Valve stem logic remains the same)
+                product.variants.edges.forEach(({ node: variant }) => {
+                    const variantMetafields = Object.fromEntries(variant.metafields.edges.map(edge => [edge.node.key, edge.node.value]));
+                    if (!variantMetafields.valve_min_rim_depth_mm || !variantMetafields.valve_max_rim_depth_mm) {
+                        productErrors.push(`Variant "${variant.title}" is missing Metafields: \`custom.valve_min/max_rim_depth_mm\``);
+                    }
+                });
             }
 
             if (productErrors.length > 0) {
@@ -140,7 +163,20 @@ module.exports = async (req, res) => {
         
         const totalIssues = errors.unpublished.length + errors.missingData.length;
         if (totalIssues > 0) {
-            // (Email sending logic remains the same)
+            let emailHtml = `<h1>Weekly Data Health Report (${totalIssues} issues found)</h1>`;
+            if (errors.unpublished.length > 0) {
+                emailHtml += `<hr><h2>Unpublished or Draft Components (${errors.unpublished.length})</h2><p>The following are tagged for the builder but are not Active and published.</p><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
+            }
+            if (errors.missingData.length > 0) {
+                 emailHtml += `<hr><h2>Components with Missing Data (${errors.missingData.length})</h2><p>The following are published but are missing critical metafield data.</p><ul>${errors.missingData.map(e => `<li>${e}</li>`).join('')}</ul>`;
+            }
+            await resend.emails.send({
+                from: 'LoamLabs Audit <info@loamlabsusa.com>',
+                to: REPORT_EMAIL_TO,
+                subject: `Data Health Report: ${totalIssues} Issues Found`,
+                html: emailHtml,
+            });
+            console.log(`Report sent with ${totalIssues} issues.`);
         } else {
             console.log("Data health check complete. No issues found.");
         }
@@ -152,7 +188,6 @@ module.exports = async (req, res) => {
     }
 };
 
-// (getSession helper function remains the same)
 function getSession() {
     return {
         id: 'data-audit-session',
