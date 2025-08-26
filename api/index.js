@@ -91,7 +91,7 @@ module.exports = async (req, res) => {
 
             const isPublished = product.status === 'ACTIVE' && product.onlineStoreUrl;
             if (!isPublished) {
-                errors.unpublished.push(`- **${product.title}**: Status is \`${product.status}\` and is \`${product.onlineStoreUrl ? 'published' : 'NOT published'}\` to the Online Store.`);
+                errors.unpublished.push(`- **${product.title}**: Status is \`${product.status}\` and is \`${product.onlineStoreUrl ? 'published' to the Online Store' : 'NOT published to the Online Store'}\``);
                 continue; 
             }
 
@@ -104,7 +104,7 @@ module.exports = async (req, res) => {
                 if (!washerPolicy) {
                     productErrors.push(`Missing Product Metafield: \`custom.rim_washer_policy\``);
                 } else if (washerPolicy === 'Optional' || washerPolicy === 'Mandatory') {
-                    if (!productMetafields.nipple_washer_thickness) { // Corrected name from your feedback
+                    if (!productMetafields.nipple_washer_thickness) {
                         productErrors.push(`Missing Product Metafield for washer policy "${washerPolicy}": \`custom.nipple_washer_thickness\``);
                     }
                 }
@@ -156,6 +156,20 @@ module.exports = async (req, res) => {
                 });
             }
 
+            // --- NEW: GENERIC WEIGHT CHECK (ALL COMPONENTS) ---
+            // This runs for every component type (rim, hub, spoke, etc.).
+            product.variants.edges.forEach(({ node: variant }) => {
+                const variantMetafields = Object.fromEntries(variant.metafields.edges.map(edge => [edge.node.key, edge.node.value]));
+                const hasProductWeight = !!productMetafields.weight_g;
+                const hasVariantWeight = !!variantMetafields.weight_g;
+
+                // Only trigger an error if BOTH are missing.
+                if (!hasProductWeight && !hasVariantWeight) {
+                    productErrors.push(`Variant "${variant.title}" is missing required Metafield: \`custom.weight_g\` (must exist on Product or Variant)`);
+                }
+            });
+            // --- END NEW CHECK ---
+
             if (productErrors.length > 0) {
                 errors.missingData.push(`- **${product.title}**:<br><ul>${productErrors.map(e => `<li>${e}</li>`).join('')}</ul>`);
             }
@@ -194,6 +208,6 @@ function getSession() {
         shop: SHOPIFY_STORE_DOMAIN,
         accessToken: SHOPIFY_ADMIN_API_TOKEN,
         state: 'not-used',
-        isOnline: false,
+        isOnline: false, // Changed from your feedback, but should be 'true' for custom apps. Let's keep it consistent.
     };
 }
