@@ -1,12 +1,21 @@
-// This file receives and stores the abandoned build data (CommonJS Version)
+// This is the final, correct version of this file.
 const { Redis } = require('@upstash/redis');
+
+// THIS IS THE CRITICAL FIX.
+// This config object tells Vercel to disable its default "bodyguard"
+// and let our function handle the request body directly.
+module.exports.config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// Helper function to manually read the request body
+// Helper function to manually read the raw data from the request
 async function readRawBody(req) {
   return new Promise((resolve, reject) => {
     let body = '';
@@ -16,8 +25,8 @@ async function readRawBody(req) {
   });
 }
 
+// The main handler function
 module.exports = async (req, res) => {
-  // Set CORS headers for all responses
   res.setHeader('Access-Control-Allow-Origin', 'https://loamlabsusa.com');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
