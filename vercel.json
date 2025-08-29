@@ -1,11 +1,8 @@
+// REPLACE your vercel.json with this new version:
 {
   "crons": [
     {
-      "path": "/api",
-      "schedule": "0 8 * * 0"
-    },
-    {
-      "path": "/api/send-daily-report",
+      "path": "/api/run-daily-tasks",
       "schedule": "0 14 * * *"
     }
   ]
