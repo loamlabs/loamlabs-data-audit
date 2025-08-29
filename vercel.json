@@ -1,4 +1,3 @@
-// REPLACE your vercel.json with this new version:
 {
   "crons": [
     {
