@@ -1,4 +1,4 @@
-// This file receives and stores the abandoned build data.
+// This file receives and stores the abandoned build data (Node.js Version)
 import { Redis } from '@upstash/redis';
 
 const redis = new Redis({
@@ -6,26 +6,25 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-// --- CORS Headers ---
-// These headers tell the browser that requests from your Shopify store are allowed.
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://loamlabsusa.com',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
 export default async function handler(req, res) {
-  // --- CORS Preflight Handling ---
-  // This is the new "bouncer" logic. It handles the browser's OPTIONS security check.
+  // --- CORS Headers (Node.js style) ---
+  // This tells the browser that requests from your Shopify store are allowed.
+  res.setHeader('Access-Control-Allow-Origin', 'https://loamlabsusa.com');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // --- CORS Preflight Handling (Node.js style) ---
+  // This handles the browser's OPTIONS security check.
   if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders });
+    res.status(204).send(''); // 204 No Content
+    return;
   }
 
-  // --- Existing POST Handling ---
-  // Your original logic for handling the actual data now runs only for POST requests.
+  // --- POST Handling (Node.js style) ---
   if (req.method === 'POST') {
     try {
-      const buildData = await req.json(); // Use req.json() for Vercel edge functions
+      // Vercel's Node.js runtime automatically parses the body for us
+      const buildData = req.body;
       
       const dataToStore = {
           ...buildData,
@@ -34,21 +33,17 @@ export default async function handler(req, res) {
 
       await redis.lpush('abandoned_builds', JSON.stringify(dataToStore));
 
-      // Respond with 202 Accepted, including the CORS headers.
-      return new Response(JSON.stringify({ message: 'Build data accepted.' }), {
-        status: 202,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // Respond with 202 Accepted.
+      res.status(202).json({ message: 'Build data accepted.' });
 
     } catch (error) {
       console.error('Error in log-abandoned-build:', error);
-      return new Response(JSON.stringify({ message: 'Error processed.' }), {
-        status: 202, // Always send success to the browser
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // Always send success to the browser
+      res.status(202).json({ message: 'Error processed.' });
     }
+    return;
   }
   
-  // If the request is not OPTIONS or POST, deny it.
-  return new Response('Method Not Allowed', { status: 405, headers: corsHeaders });
+  // If not OPTIONS or POST, deny it.
+  res.status(405).json({ message: 'Method Not Allowed' });
 }
