@@ -1,13 +1,11 @@
 {
   "name": "loamlabs-data-audit",
   "version": "1.0.0",
-  "description": "Audits Shopify component data for completeness and readiness.",
-  "main": "api/index.js",
-  "scripts": {
-    "start": "node api/index.js"
-  },
+  "description": "Audits Shopify component data and reports on abandoned builds.",
+  "private": true,
   "dependencies": {
     "@shopify/shopify-api": "^9.3.2",
+    "@upstash/redis": "^1.31.2",
     "resend": "^3.2.0"
   }
 }
