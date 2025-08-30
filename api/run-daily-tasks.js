@@ -69,11 +69,10 @@ async function sendAbandonedBuildReport() {
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
 
-// --- Task 2: Data Audit Logic ---
-// (This code remains unchanged, but is included for completeness)
+// --- Task 2: Data Audit Logic (COMPREHENSIVE VERSION) ---
 async function runDataAudit() {
-    console.log("Running Task: Data Audit...");
-    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:valvestem'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
+    console.log("Running Task: Data Audit (Comprehensive)...");
+    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
     const client = new shopify.clients.Graphql({ session: getSession() });
     let allProducts = [], hasNextPage = true, cursor = null;
     do {
@@ -88,9 +87,57 @@ async function runDataAudit() {
         if (product.tags.includes('audit:exclude')) continue;
         const isPublished = product.status === 'ACTIVE' && product.onlineStoreUrl;
         if (!isPublished) { errors.unpublished.push(`- **${product.title}**: Status is \`${product.status}\``); continue; }
+        
         const productMetafields = Object.fromEntries(product.metafields.edges.map(e => [e.node.key, e.node.value]));
         const productErrors = [];
-        if (product.tags.includes('component:rim')) { const wP = productMetafields.rim_washer_policy; if (!wP) productErrors.push(`Missing: \`rim_washer_policy\``); else if (wP === 'Optional' || wP === 'Mandatory') { if (!productMetafields.nipple_washer_thickness) productErrors.push(`Missing for washer policy: \`nipple_washer_thickness\``); } ['rim_spoke_hole_offset', 'rim_target_tension_kgf'].forEach(k => { if (!productMetafields[k]) productErrors.push(`Missing: \`${k}\``); }); product.variants.edges.forEach(({ node: v }) => { const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value])); if (!vM.rim_erd) productErrors.push(`Variant "${v.title}" missing: \`rim_erd\``); }); }
+
+        // --- General Weight Check (for all components) ---
+        const hasProductWeight = !!productMetafields.weight_g;
+        let allVariantsHaveWeight = product.variants.edges.length > 0;
+        for (const { node: variant } of product.variants.edges) {
+            const variantMetafields = Object.fromEntries(variant.metafields.edges.map(e => [e.node.key, e.node.value]));
+            if (!variantMetafields.weight_g) { allVariantsHaveWeight = false; break; }
+        }
+        if (!hasProductWeight && !allVariantsHaveWeight) {
+            productErrors.push("Missing: `weight_g` at either the Product level or for ALL Variants.");
+        }
+
+        // --- Rim Specific Checks ---
+        if (product.tags.includes('component:rim')) {
+            const requiredRimMetafields = ['rim_washer_policy', 'rim_spoke_hole_offset', 'rim_target_tension_kgf'];
+            requiredRimMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
+            if (['Optional', 'Mandatory'].includes(productMetafields.rim_washer_policy) && !productMetafields.rim_nipple_washer_thickness_mm) {
+                productErrors.push("Missing Product Metafield: `rim_nipple_washer_thickness_mm` (required by washer policy).");
+            }
+            product.variants.edges.forEach(({ node: v }) => {
+                const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
+                if (!vM.rim_erd) productErrors.push(`Variant "${v.title}" missing: \`rim_erd\``);
+            });
+        }
+
+        // --- Hub Specific Checks ---
+        if (product.tags.includes('component:hub')) {
+            const requiredHubMetafields = ['hub_type', 'hub_lacing_policy', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right', 'hub_spoke_hole_diameter'];
+            requiredHubMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
+            if (productMetafields.hub_type === 'Straight Pull') {
+                const spMetafields = ['hub_sp_offset_spoke_hole_left', 'hub_sp_offset_spoke_hole_right'];
+                spMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\` (required for Straight Pull).`); });
+            }
+            if (productMetafields.hub_lacing_policy === 'Use Manual Override Field') {
+                product.variants.edges.forEach(({ node: v }) => {
+                    const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
+                    if (!vM.hub_manual_cross_value) productErrors.push(`Variant "${v.title}" missing: \`hub_manual_cross_value\` (required by lacing policy).`);
+                });
+            }
+        }
+
+        // --- Spoke Specific Checks ---
+        if (product.tags.includes('component:spoke')) {
+            if (!productMetafields.spoke_cross_sectional_area_mm2) {
+                productErrors.push("Missing Product Metafield: `spoke_cross_sectional_area_mm2`");
+            }
+        }
+
         if (productErrors.length > 0) errors.missingData.push(`- **${product.title}**:<br><ul>${productErrors.map(e => `<li>${e}</li>`).join('')}</ul>`);
     }
     const totalIssues = errors.unpublished.length + errors.missingData.length;
