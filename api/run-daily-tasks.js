@@ -69,7 +69,7 @@ async function sendAbandonedBuildReport() {
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
 
-// --- Task 2: Data Audit Logic (FINAL CORRECTED VERSION) ---
+// --- Task 2: Data Audit Logic (FINAL CORRECTED VERSION 2) ---
 async function runDataAudit() {
     console.log("Running Task: Data Audit (Comprehensive)...");
     const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
@@ -106,7 +106,6 @@ async function runDataAudit() {
         if (product.tags.includes('component:rim')) {
             const requiredRimMetafields = ['rim_washer_policy', 'rim_spoke_hole_offset', 'rim_target_tension_kgf'];
             requiredRimMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            // --- MODIFICATION: Using corrected metafield name 'nipple_washer_thickness' ---
             if (['Optional', 'Mandatory'].includes(productMetafields.rim_washer_policy) && !productMetafields.nipple_washer_thickness) {
                 productErrors.push("Missing Product Metafield: `nipple_washer_thickness` (required by washer policy).");
             }
@@ -120,14 +119,10 @@ async function runDataAudit() {
         if (product.tags.includes('component:hub')) {
             const requiredHubMetafields = ['hub_type', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right', 'hub_spoke_hole_diameter'];
             requiredHubMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            
-            // --- MODIFICATION: Treat blank lacing policy as "Standard" (no error) ---
             const lacingPolicy = productMetafields.hub_lacing_policy || 'Standard';
-            
             product.variants.edges.forEach(({ node: v }) => {
                 const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
                 if (productMetafields.hub_type === 'Straight Pull') {
-                    // --- MODIFICATION: Checking these at the VARIANT level ---
                     const spMetafields = ['hub_sp_offset_spoke_hole_left', 'hub_sp_offset_spoke_hole_right'];
                     spMetafields.forEach(key => { if (!vM[key]) productErrors.push(`Variant "${v.title}" missing: \`${key}\` (required for Straight Pull).`); });
                 }
@@ -139,8 +134,9 @@ async function runDataAudit() {
 
         // --- Spoke Specific Checks ---
         if (product.tags.includes('component:spoke')) {
-            if (!productMetafields.spoke_cross_sectional_area_mm2) {
-                productErrors.push("Missing Product Metafield: `spoke_cross_sectional_area_mm2`");
+            // --- MODIFICATION: Using corrected metafield name 'spoke_cross_section_area_mm2' ---
+            if (!productMetafields.spoke_cross_section_area_mm2) {
+                productErrors.push("Missing Product Metafield: `spoke_cross_section_area_mm2`");
             }
         }
 
