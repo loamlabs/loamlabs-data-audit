@@ -69,7 +69,7 @@ async function sendAbandonedBuildReport() {
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
 
-// --- Task 2: Data Audit Logic (FINAL CORRECTED VERSION 3) ---
+// --- Task 2: Data Audit Logic (FINAL VERSION - Ignores Berd Cross-Section) ---
 async function runDataAudit() {
     console.log("Running Task: Data Audit (Comprehensive)...");
     const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
@@ -120,12 +120,9 @@ async function runDataAudit() {
             const requiredHubMetafields = ['hub_type', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right'];
             requiredHubMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
             const lacingPolicy = productMetafields.hub_lacing_policy || 'Standard';
-            
-            // --- MODIFICATION: Only check for spoke hole diameter on Classic Flange hubs ---
             if (productMetafields.hub_type === 'Classic Flange' && !productMetafields.hub_spoke_hole_diameter) {
                 productErrors.push("Missing Product Metafield: `hub_spoke_hole_diameter` (required for Classic Flange).");
             }
-            
             product.variants.edges.forEach(({ node: v }) => {
                 const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
                 if (productMetafields.hub_type === 'Straight Pull') {
@@ -140,7 +137,8 @@ async function runDataAudit() {
 
         // --- Spoke Specific Checks ---
         if (product.tags.includes('component:spoke')) {
-            if (!productMetafields.spoke_cross_section_area_mm2) {
+            // --- MODIFICATION: Only check this metafield if the vendor is NOT Berd ---
+            if (product.vendor !== 'Berd' && !productMetafields.spoke_cross_section_area_mm2) {
                 productErrors.push("Missing Product Metafield: `spoke_cross_section_area_mm2`");
             }
         }
