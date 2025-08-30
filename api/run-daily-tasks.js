@@ -22,9 +22,17 @@ function getSession() { return { id: 'data-audit-session', shop: SHOPIFY_STORE_D
 // --- Task 1: Abandoned Build Report Logic ---
 async function sendAbandonedBuildReport() {
     console.log("Running Task: Send Abandoned Build Report...");
+
+    // Step 1: Get all the builds from the Redis list.
     const buildsJson = await redis.lrange('abandoned_builds', 0, -1);
-    if (buildsJson.length > 0) { await redis.del('abandoned_builds'); }
-    if (buildsJson.length === 0) { console.log("Report Task: No abandoned builds to report."); return { status: 'success', message: 'No builds to report.' }; }
+
+    // Step 2: If there are no builds, log it and exit successfully.
+    if (buildsJson.length === 0) {
+        console.log("Report Task: No abandoned builds to report.");
+        return { status: 'success', message: 'No builds to report.' };
+    }
+
+    // Step 3: Parse the build data and prepare the email content.
     const builds = buildsJson.map(b => JSON.parse(b));
     let buildsHtml = '';
     builds.forEach((build, index) => {
@@ -43,11 +51,24 @@ async function sendAbandonedBuildReport() {
         buildsHtml += `<div class="build-section"><h3>Build #${index + 1} (ID: ${build.buildId})</h3><p>Captured: ${new Date(build.capturedAt).toLocaleString()}</p><table class="data-table">${visitorHtml}<tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr><tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>${(build.buildType === 'Front' || build.buildType === 'Wheel Set') ? `<tr><td colspan="2" class="subheader">Front Wheel</td></tr><tr><td>Front Rim</td><td>${getComp('front', 'Rim')}</td></tr><tr><td>Front Hub</td><td>${getComp('front', 'Hub')}</td></tr>` : ''}${(build.buildType === 'Rear' || build.buildType === 'Wheel Set') ? `<tr><td colspan="2" class="subheader">Rear Wheel</td></tr><tr><td>Rear Rim</td><td>${getComp('rear', 'Rim')}</td></tr><tr><td>Rear Hub</td><td>${getComp('rear', 'Hub')}</td></tr>` : ''}<tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr></table></div>`;
     });
     const emailHtml = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;color:#333}a{color:#007bff;text-decoration:none}.container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}.build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}.data-table{border-collapse:collapse;width:100%}.data-table td{padding:8px;border:1px solid #ddd}.data-table td:first-child{font-weight:bold;width:120px}.subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}</style></head><body><div class="container"><h2>Daily Abandoned Build Report</h2><p>Found <strong>${builds.length}</strong> significant build(s) that were started but not added to the cart in the last 24 hours.</p>${buildsHtml}</div></body></html>`;
-    await resend.emails.send({ from: 'Builder Reports <reports@loamlabsusa.com>', to: [REPORT_EMAIL_TO], subject: `Abandoned Build Report: ${builds.length} build(s)`, html: emailHtml });
+
+    // Step 4: Try to send the email.
+    // MODIFICATION: Changed the 'from' address to one that is known to be verified.
+    await resend.emails.send({
+        from: 'LoamLabs Audit <info@loamlabsusa.com>',
+        to: [REPORT_EMAIL_TO],
+        subject: `Abandoned Build Report: ${builds.length} build(s)`,
+        html: emailHtml
+    });
+
     console.log(`Report Task: Successfully sent report for ${builds.length} builds.`);
+
+    // Step 5 (CRITICAL): Only delete the data from Redis AFTER the email has been sent successfully.
+    await redis.del('abandoned_builds');
+    console.log("Report Task: Cleared reported builds from Redis.");
+
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
-
 // --- Task 2: Data Audit Logic ---
 async function runDataAudit() {
     console.log("Running Task: Data Audit...");
