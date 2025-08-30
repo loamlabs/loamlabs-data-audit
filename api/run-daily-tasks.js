@@ -19,15 +19,22 @@ const shopify = shopifyApi({
 
 function getSession() { return { id: 'data-audit-session', shop: SHOPIFY_STORE_DOMAIN, accessToken: SHOPIFY_ADMIN_API_TOKEN, state: 'not-used', isOnline: false }; }
 
-// --- Task 1: Abandoned Build Report Logic (CORRECTED) ---
+// --- Task 1: Abandoned Build Report Logic (FINAL CORRECTED VERSION) ---
 async function sendAbandonedBuildReport() {
     console.log("Running Task: Send Abandoned Build Report...");
-    const buildsJson = await redis.lrange('abandoned_builds', 0, -1);
-    if (buildsJson.length === 0) {
+    
+    // Step 1: Get all the builds from the Redis list.
+    // The Upstash client automatically parses the JSON, so this is an array of objects.
+    const builds = await redis.lrange('abandoned_builds', 0, -1);
+
+    // Step 2: If there are no builds, log it and exit successfully.
+    if (builds.length === 0) {
         console.log("Report Task: No abandoned builds to report.");
         return { status: 'success', message: 'No builds to report.' };
     }
-    const builds = buildsJson.map(b => JSON.parse(b));
+
+    // Step 3: Prepare the email content.
+    // THE FIX: The unnecessary JSON.parse has been removed. 'builds' is already the correct format.
     let buildsHtml = '';
     builds.forEach((build, index) => {
         const getComp = (pos, type) => {
@@ -46,14 +53,19 @@ async function sendAbandonedBuildReport() {
     });
     const emailHtml = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;color:#333}a{color:#007bff;text-decoration:none}.container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}.build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}.data-table{border-collapse:collapse;width:100%}.data-table td{padding:8px;border:1px solid #ddd}.data-table td:first-child{font-weight:bold;width:120px}.subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}</style></head><body><div class="container"><h2>Daily Abandoned Build Report</h2><p>Found <strong>${builds.length}</strong> significant build(s) that were started but not added to the cart in the last 24 hours.</p>${buildsHtml}</div></body></html>`;
     
-    // Using a verified 'from' address
-    await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: [REPORT_EMAIL_TO], subject: `Abandoned Build Report: ${builds.length} build(s)`, html: emailHtml });
+    // Step 4: Try to send the email.
+    await resend.emails.send({
+        from: 'LoamLabs Audit <info@loamlabsusa.com>',
+        to: [REPORT_EMAIL_TO],
+        subject: `Abandoned Build Report: ${builds.length} build(s)`,
+        html: emailHtml
+    });
     console.log(`Report Task: Successfully sent report for ${builds.length} builds.`);
-    
-    // Deleting data AFTER successful send
+
+    // Step 5: Only delete the data from Redis AFTER the email has been sent successfully.
     await redis.del('abandoned_builds');
     console.log("Report Task: Cleared reported builds from Redis.");
-    
+
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
 
