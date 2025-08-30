@@ -69,7 +69,7 @@ async function sendAbandonedBuildReport() {
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
 
-// --- Task 2: Data Audit Logic (COMPREHENSIVE VERSION) ---
+// --- Task 2: Data Audit Logic (FINAL CORRECTED VERSION) ---
 async function runDataAudit() {
     console.log("Running Task: Data Audit (Comprehensive)...");
     const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
@@ -106,8 +106,9 @@ async function runDataAudit() {
         if (product.tags.includes('component:rim')) {
             const requiredRimMetafields = ['rim_washer_policy', 'rim_spoke_hole_offset', 'rim_target_tension_kgf'];
             requiredRimMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            if (['Optional', 'Mandatory'].includes(productMetafields.rim_washer_policy) && !productMetafields.rim_nipple_washer_thickness_mm) {
-                productErrors.push("Missing Product Metafield: `rim_nipple_washer_thickness_mm` (required by washer policy).");
+            // --- MODIFICATION: Using corrected metafield name 'nipple_washer_thickness' ---
+            if (['Optional', 'Mandatory'].includes(productMetafields.rim_washer_policy) && !productMetafields.nipple_washer_thickness) {
+                productErrors.push("Missing Product Metafield: `nipple_washer_thickness` (required by washer policy).");
             }
             product.variants.edges.forEach(({ node: v }) => {
                 const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
@@ -117,18 +118,23 @@ async function runDataAudit() {
 
         // --- Hub Specific Checks ---
         if (product.tags.includes('component:hub')) {
-            const requiredHubMetafields = ['hub_type', 'hub_lacing_policy', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right', 'hub_spoke_hole_diameter'];
+            const requiredHubMetafields = ['hub_type', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right', 'hub_spoke_hole_diameter'];
             requiredHubMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            if (productMetafields.hub_type === 'Straight Pull') {
-                const spMetafields = ['hub_sp_offset_spoke_hole_left', 'hub_sp_offset_spoke_hole_right'];
-                spMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\` (required for Straight Pull).`); });
-            }
-            if (productMetafields.hub_lacing_policy === 'Use Manual Override Field') {
-                product.variants.edges.forEach(({ node: v }) => {
-                    const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
+            
+            // --- MODIFICATION: Treat blank lacing policy as "Standard" (no error) ---
+            const lacingPolicy = productMetafields.hub_lacing_policy || 'Standard';
+            
+            product.variants.edges.forEach(({ node: v }) => {
+                const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
+                if (productMetafields.hub_type === 'Straight Pull') {
+                    // --- MODIFICATION: Checking these at the VARIANT level ---
+                    const spMetafields = ['hub_sp_offset_spoke_hole_left', 'hub_sp_offset_spoke_hole_right'];
+                    spMetafields.forEach(key => { if (!vM[key]) productErrors.push(`Variant "${v.title}" missing: \`${key}\` (required for Straight Pull).`); });
+                }
+                if (lacingPolicy === 'Use Manual Override Field') {
                     if (!vM.hub_manual_cross_value) productErrors.push(`Variant "${v.title}" missing: \`hub_manual_cross_value\` (required by lacing policy).`);
-                });
-            }
+                }
+            });
         }
 
         // --- Spoke Specific Checks ---
@@ -153,7 +159,6 @@ async function runDataAudit() {
         return { status: 'success', message: 'Audit complete. No issues found.' };
     }
 }
-
 // --- MAIN HANDLER ---
 module.exports = async (req, res) => {
     // SECURITY: We check for the Vercel cron secret, but allow direct manual runs for testing.
