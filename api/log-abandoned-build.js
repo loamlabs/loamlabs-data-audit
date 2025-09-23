@@ -50,9 +50,6 @@ const handler = async (req, res) => {
   res.status(405).json({ message: 'Method Not Allowed' });
 };
 
-// THIS IS THE CRITICAL FIX.
-// We attach the config object as a property of the handler function itself.
-// This is the correct way to export both in a single CommonJS module for Vercel.
 handler.config = {
   api: {
     bodyParser: false,
