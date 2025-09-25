@@ -19,12 +19,30 @@ const shopify = shopifyApi({
 
 function getSession() { return { id: 'data-audit-session', shop: SHOPIFY_STORE_DOMAIN, accessToken: SHOPIFY_ADMIN_API_TOKEN, state: 'not-used', isOnline: false }; }
 
-// --- Task 1: Abandoned Build Report Logic (FINAL CORRECTED VERSION) ---
+// --- Task 1: Abandoned Build Report Logic (CORRECTED DYNAMIC VERSION) ---
+
+/**
+ * Helper function to dynamically render component rows for a single wheel.
+ * @param {Array} wheelComponents - The array of component objects (e.g., build.components.front).
+ * @returns {string} An HTML string of <tr> elements.
+ */
+const renderWheelComponents = (wheelComponents) => {
+  if (!wheelComponents || wheelComponents.length === 0) {
+    return ''; // Return nothing if there are no components for this wheel
+  }
+  // This dynamically creates a row for every component in the array.
+  return wheelComponents.map(component => `
+    <tr>
+      <td class="component-label">${component.type}</td>
+      <td class="component-name">${component.name}</td>
+    </tr>
+  `).join('');
+};
+
 async function sendAbandonedBuildReport() {
     console.log("Running Task: Send Abandoned Build Report...");
     
     // Step 1: Get all the builds from the Redis list.
-    // The Upstash client automatically parses the JSON, so this is an array of objects.
     const builds = await redis.lrange('abandoned_builds', 0, -1);
 
     // Step 2: If there are no builds, log it and exit successfully.
@@ -33,25 +51,48 @@ async function sendAbandonedBuildReport() {
         return { status: 'success', message: 'No builds to report.' };
     }
 
-    // Step 3: Prepare the email content.
-    // THE FIX: The unnecessary JSON.parse has been removed. 'builds' is already the correct format.
-    let buildsHtml = '';
-    builds.forEach((build, index) => {
-        const getComp = (pos, type) => {
-            const component = build.components[`${pos}${type}`];
-            if (component && component.title) { return `${component.title} (${component.variantTitle || ''})`; }
-            return '<em>Not Selected</em>';
-        };
+    // Step 3: Prepare the email content using the new dynamic logic.
+    const buildsHtml = builds.map((build, index) => {
         let visitorHtml = '';
         if (build.visitor) {
             if (build.visitor.isLoggedIn) {
                 const customerUrl = `https://${SHOPIFY_STORE_DOMAIN}/admin/customers/${build.visitor.customerId}`;
-                visitorHtml = `<tr><td>User</td><td><strong><a href="${customerUrl}" target="_blank">${build.visitor.firstName || ''} ${build.visitor.lastName || ''}</a></strong><br><small>${build.visitor.email}</small></td></tr>`;
-            } else { visitorHtml = `<tr><td>User</td><td>Anonymous Visitor<br><small>ID: ${build.visitor.anonymousId}</small></td></tr>`; }
+                const visitorName = `${build.visitor.firstName || ''} ${build.visitor.lastName || ''}`.trim();
+                visitorHtml = `<tr><td>User</td><td><strong><a href="${customerUrl}" target="_blank">${visitorName || 'Customer'}</a></strong><br><small>${build.visitor.email}</small></td></tr>`;
+            } else {
+                visitorHtml = `<tr><td>User</td><td>Anonymous Visitor<br><small>ID: ${build.visitor.anonymousId}</small></td></tr>`;
+            }
         }
-        buildsHtml += `<div class="build-section"><h3>Build #${index + 1} (ID: ${build.buildId})</h3><p>Captured: ${new Date(build.capturedAt).toLocaleString()}</p><table class="data-table">${visitorHtml}<tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr><tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>${(build.buildType === 'Front' || build.buildType === 'Wheel Set') ? `<tr><td colspan="2" class="subheader">Front Wheel</td></tr><tr><td>Front Rim</td><td>${getComp('front', 'Rim')}</td></tr><tr><td>Front Hub</td><td>${getComp('front', 'Hub')}</td></tr>` : ''}${(build.buildType === 'Rear' || build.buildType === 'Wheel Set') ? `<tr><td colspan="2" class="subheader">Rear Wheel</td></tr><tr><td>Rear Rim</td><td>${getComp('rear', 'Rim')}</td></tr><tr><td>Rear Hub</td><td>${getComp('rear', 'Hub')}</td></tr>` : ''}<tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr></table></div>`;
-    });
-    const emailHtml = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;color:#333}a{color:#007bff;text-decoration:none}.container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}.build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}.data-table{border-collapse:collapse;width:100%}.data-table td{padding:8px;border:1px solid #ddd}.data-table td:first-child{font-weight:bold;width:120px}.subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}</style></head><body><div class="container"><h2>Daily Abandoned Build Report</h2><p>Found <strong>${builds.length}</strong> significant build(s) that were started but not added to the cart in the last 24 hours.</p>${buildsHtml}</div></body></html>`;
+
+        const hasFrontComponents = build.components && build.components.front && build.components.front.length > 0;
+        const hasRearComponents = build.components && build.components.rear && build.components.rear.length > 0;
+
+        return `
+            <div class="build-section">
+                <h3>Build #${index + 1} (ID: ${build.buildId})</h3>
+                <p>Captured: ${new Date(build.capturedAt).toLocaleString()}</p>
+                <table class="data-table">
+                    ${visitorHtml}
+                    <tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr>
+                    <tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>
+                    
+                    ${hasFrontComponents ? `
+                        <tr><td colspan="2" class="subheader">Front Wheel</td></tr>
+                        ${renderWheelComponents(build.components.front)}
+                    ` : ''}
+                    
+                    ${hasRearComponents ? `
+                        <tr><td colspan="2" class="subheader">Rear Wheel</td></tr>
+                        ${renderWheelComponents(build.components.rear)}
+                    ` : ''}
+                    
+                    <tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr>
+                </table>
+            </div>
+        `;
+    }).join('');
+
+    const emailHtml = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;color:#333}a{color:#007bff;text-decoration:none}.container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}.build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}.data-table{border-collapse:collapse;width:100%}.data-table td{padding:8px;border:1px solid #ddd}.data-table td:first-child{font-weight:bold;width:120px;}.component-label{font-weight:normal !important;padding-left:25px !important;}.component-name{font-weight:bold;}.subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}</style></head><body><div class="container"><h2>Daily Abandoned Build Report</h2><p>Found <strong>${builds.length}</strong> significant build(s) that were started but not added to the cart in the last 24 hours.</p>${buildsHtml}</div></body></html>`;
     
     // Step 4: Try to send the email.
     await resend.emails.send({
@@ -69,7 +110,8 @@ async function sendAbandonedBuildReport() {
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
 
-// --- Task 2: Data Audit Logic (FINAL VERSION - Ignores Berd Cross-Section) ---
+
+// --- Task 2: Data Audit Logic (No changes needed here) ---
 async function runDataAudit() {
     console.log("Running Task: Data Audit (Comprehensive)...");
     const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
@@ -137,7 +179,6 @@ async function runDataAudit() {
 
         // --- Spoke Specific Checks ---
         if (product.tags.includes('component:spoke')) {
-            // --- MODIFICATION: Only check this metafield if the vendor is NOT Berd ---
             if (product.vendor !== 'Berd' && !productMetafields.spoke_cross_section_area_mm2) {
                 productErrors.push("Missing Product Metafield: `spoke_cross_section_area_mm2`");
             }
@@ -158,9 +199,9 @@ async function runDataAudit() {
         return { status: 'success', message: 'Audit complete. No issues found.' };
     }
 }
-// --- MAIN HANDLER ---
+
+// --- MAIN HANDLER (No changes needed here) ---
 module.exports = async (req, res) => {
-    // SECURITY: We check for the Vercel cron secret, but allow direct manual runs for testing.
     const authHeader = req.headers.authorization;
     if (process.env.VERCEL_ENV === 'production' && authHeader !== `Bearer ${CRON_SECRET}`) {
        return res.status(401).json({ message: 'Unauthorized' });
