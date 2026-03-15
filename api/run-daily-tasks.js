@@ -222,6 +222,7 @@ async function runOversellAudit() {
     const client = new shopify.clients.Graphql({ session: getSession() });
     const response = await client.query({ data: { query: OVERSELL_QUERY } });
     const variants = response.body.data.productVariants.edges.map(edge => edge.node);
+    console.log("DEBUG: Shopify returned these variants:", JSON.stringify(variants));
 
     if (variants.length === 0) {
         console.log("Oversell Audit: No negative inventory found.");
@@ -235,7 +236,7 @@ async function runOversellAudit() {
         // Strict Check: Ignore 0 or positive
         if (variant.inventoryQuantity >= 0) continue;
 
-        const redisKey = `oversell_reported:${variant.id}`;
+        const redisKey = \oversell_reported_v2:${variant.id}`;`
         const alreadyReported = await redis.get(redisKey);
 
         const cleanId = variant.id.split('/').pop();
