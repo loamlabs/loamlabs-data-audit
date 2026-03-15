@@ -236,7 +236,7 @@ async function runOversellAudit() {
         // Strict Check: Ignore 0 or positive
         if (variant.inventoryQuantity >= 0) continue;
 
-        const redisKey = \oversell_reported_v2:${variant.id}`;`
+        const redisKey = `oversell_reported_v2:${variant.id}`;
         const alreadyReported = await redis.get(redisKey);
 
         const cleanId = variant.id.split('/').pop();
