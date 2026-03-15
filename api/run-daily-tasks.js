@@ -200,6 +200,112 @@ async function runDataAudit() {
     }
 }
 
+// --- Task 3: Negative Inventory (Oversell) Audit ---
+async function runOversellAudit() {
+    console.log("Running Task: Negative Inventory Audit...");
+    
+    // We use a specific GraphQL filter to only find products that are actually negative.
+    // This is very efficient and won't use much of your Vercel "time."
+    const OVERSELL_QUERY = `
+    query {
+      productVariants(first: 250, query: "inventory_total:<0") {
+        edges {
+          node {
+            id
+            title
+            sku
+            inventoryQuantity
+            product {
+              id
+              title
+            }
+          }
+        }
+      }
+    }`;
+
+    const client = new shopify.clients.Graphql({ session: getSession() });
+    const response = await client.query({ data: { query: OVERSELL_QUERY } });
+    const variants = response.body.data.productVariants.edges.map(edge => edge.node);
+
+    if (variants.length === 0) {
+        console.log("Oversell Audit: No negative inventory found.");
+        return { status: 'success', message: 'No negative inventory found.' };
+    }
+
+    let reportList = [];
+
+    for (const variant of variants) {
+        const redisKey = `oversell_reported:${variant.id}`;
+        // Check if we've reported this specific variant in the last 7 days
+        const alreadyReported = await redis.get(redisKey);
+
+        if (!alreadyReported) {
+            // It's a new issue (or 7 days have passed). Add to report.
+            const cleanId = variant.id.split('/').pop();
+            const cleanProductId = variant.product.id.split('/').pop();
+            
+            reportList.push({
+                title: `${variant.product.title} - ${variant.title}`,
+                sku: variant.sku || 'No SKU',
+                qty: variant.inventoryQuantity,
+                // Deep link directly to the inventory management page for this variant
+                adminUrl: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${cleanProductId}/variants/${cleanId}`
+            });
+
+            // "Snooze" this item for 7 days (604800 seconds)
+            await redis.set(redisKey, 'true', { ex: 604800 });
+        }
+    }
+
+    if (reportList.length > 0) {
+        const rowsHtml = reportList.map(item => `
+            <tr>
+                <td style="padding:10px; border:1px solid #ddd;">
+                    <strong>${item.title}</strong><br>
+                    <small>SKU: ${item.sku}</small>
+                </td>
+                <td style="padding:10px; border:1px solid #ddd; text-align:center; color:red;">
+                    <strong>${item.qty}</strong>
+                </td>
+                <td style="padding:10px; border:1px solid #ddd; text-align:center;">
+                    <a href="${item.adminUrl}" style="background:#000; color:#fff; padding:5px 10px; text-decoration:none; border-radius:4px; font-size:12px;">Fix Inventory</a>
+                </td>
+            </tr>
+        `).join('');
+
+        const emailHtml = `
+            <div style="font-family:sans-serif; max-width:600px;">
+                <h2>⚠️ Negative Inventory Alert</h2>
+                <p>The following items have oversold or have data errors. These items will be hidden from this report for 7 days once corrected or ignored.</p>
+                <table style="width:100%; border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f4f4f4;">
+                            <th style="padding:10px; border:1px solid #ddd; text-align:left;">Product</th>
+                            <th style="padding:10px; border:1px solid #ddd;">Qty</th>
+                            <th style="padding:10px; border:1px solid #ddd;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+        `;
+
+        await resend.emails.send({
+            from: 'LoamLabs Audit <info@loamlabsusa.com>',
+            to: REPORT_EMAIL_TO,
+            subject: `Oversell Alert: ${reportList.length} Items Need Attention`,
+            html: emailHtml
+        });
+
+        console.log(`Oversell Audit: Sent report for ${reportList.length} items.`);
+        return { status: 'success', message: `Sent report for ${reportList.length} items.` };
+    }
+
+    console.log("Oversell Audit: All negative items are currently in the 7-day snooze period.");
+    return { status: 'success', message: 'Issues found, but all are currently snoozed.' };
+}
+
 // --- MAIN HANDLER (No changes needed here) ---
 module.exports = async (req, res) => {
     const authHeader = req.headers.authorization;
@@ -209,9 +315,22 @@ module.exports = async (req, res) => {
     
     try {
         console.log("--- MAIN HANDLER STARTED ---");
-        const results = await Promise.allSettled([sendAbandonedBuildReport(), runDataAudit()]);
+        // We add runOversellAudit() to the execution list here:
+        const results = await Promise.allSettled([
+            sendAbandonedBuildReport(), 
+            runDataAudit(),
+            runOversellAudit() 
+        ]);
+        
         console.log("All daily tasks finished.", results);
-        results.forEach((result, index) => { if (result.status === 'rejected') console.error(`Task ${index === 0 ? 'Report' : 'Audit'} failed:`, result.reason); });
+        
+        results.forEach((result, index) => { 
+            const taskNames = ['Abandoned Report', 'Data Audit', 'Oversell Audit'];
+            if (result.status === 'rejected') {
+                console.error(`Task "${taskNames[index]}" failed:`, result.reason); 
+            }
+        });
+
         return res.status(200).json({ message: 'All daily tasks executed.', results });
     } catch (error) {
         console.error('A critical error occurred in the main task handler:', error);
