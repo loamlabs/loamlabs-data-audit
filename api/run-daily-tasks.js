@@ -19,18 +19,9 @@ const shopify = shopifyApi({
 
 function getSession() { return { id: 'data-audit-session', shop: SHOPIFY_STORE_DOMAIN, accessToken: SHOPIFY_ADMIN_API_TOKEN, state: 'not-used', isOnline: false }; }
 
-// --- Task 1: Abandoned Build Report Logic (CORRECTED DYNAMIC VERSION) ---
-
-/**
- * Helper function to dynamically render component rows for a single wheel.
- * @param {Array} wheelComponents - The array of component objects (e.g., build.components.front).
- * @returns {string} An HTML string of <tr> elements.
- */
+// --- Task 1: Abandoned Build Report Logic ---
 const renderWheelComponents = (wheelComponents) => {
-  if (!wheelComponents || wheelComponents.length === 0) {
-    return ''; // Return nothing if there are no components for this wheel
-  }
-  // This dynamically creates a row for every component in the array.
+  if (!wheelComponents || wheelComponents.length === 0) return '';
   return wheelComponents.map(component => `
     <tr>
       <td class="component-label">${component.type}</td>
@@ -41,17 +32,11 @@ const renderWheelComponents = (wheelComponents) => {
 
 async function sendAbandonedBuildReport() {
     console.log("Running Task: Send Abandoned Build Report...");
-    
-    // Step 1: Get all the builds from the Redis list.
     const builds = await redis.lrange('abandoned_builds', 0, -1);
-
-    // Step 2: If there are no builds, log it and exit successfully.
     if (builds.length === 0) {
         console.log("Report Task: No abandoned builds to report.");
         return { status: 'success', message: 'No builds to report.' };
     }
-
-    // Step 3: Prepare the email content using the new dynamic logic.
     const buildsHtml = builds.map((build, index) => {
         let visitorHtml = '';
         if (build.visitor) {
@@ -63,57 +48,25 @@ async function sendAbandonedBuildReport() {
                 visitorHtml = `<tr><td>User</td><td>Anonymous Visitor<br><small>ID: ${build.visitor.anonymousId}</small></td></tr>`;
             }
         }
-
         const hasFrontComponents = build.components && build.components.front && build.components.front.length > 0;
         const hasRearComponents = build.components && build.components.rear && build.components.rear.length > 0;
-
         return `
             <div class="build-section">
                 <h3>Build #${index + 1} (ID: ${build.buildId})</h3>
                 <p>Captured: ${new Date(build.capturedAt).toLocaleString()}</p>
-                <table class="data-table">
-                    ${visitorHtml}
-                    <tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr>
-                    <tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>
-                    
-                    ${hasFrontComponents ? `
-                        <tr><td colspan="2" class="subheader">Front Wheel</td></tr>
-                        ${renderWheelComponents(build.components.front)}
-                    ` : ''}
-                    
-                    ${hasRearComponents ? `
-                        <tr><td colspan="2" class="subheader">Rear Wheel</td></tr>
-                        ${renderWheelComponents(build.components.rear)}
-                    ` : ''}
-                    
-                    <tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr>
-                </table>
+                <table class="data-table">${visitorHtml}<tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr><tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>${hasFrontComponents ? `<tr><td colspan="2" class="subheader">Front Wheel</td></tr>${renderWheelComponents(build.components.front)}` : ''}${hasRearComponents ? `<tr><td colspan="2" class="subheader">Rear Wheel</td></tr>${renderWheelComponents(build.components.rear)}` : ''}<tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr></table>
             </div>
         `;
     }).join('');
-
     const emailHtml = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;color:#333}a{color:#007bff;text-decoration:none}.container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}.build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}.data-table{border-collapse:collapse;width:100%}.data-table td{padding:8px;border:1px solid #ddd}.data-table td:first-child{font-weight:bold;width:120px;}.component-label{font-weight:normal !important;padding-left:25px !important;}.component-name{font-weight:bold;}.subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}</style></head><body><div class="container"><h2>Daily Abandoned Build Report</h2><p>Found <strong>${builds.length}</strong> significant build(s) that were started but not added to the cart in the last 24 hours.</p>${buildsHtml}</div></body></html>`;
-    
-    // Step 4: Try to send the email.
-    await resend.emails.send({
-        from: 'LoamLabs Audit <info@loamlabsusa.com>',
-        to: [REPORT_EMAIL_TO],
-        subject: `Abandoned Build Report: ${builds.length} build(s)`,
-        html: emailHtml
-    });
-    console.log(`Report Task: Successfully sent report for ${builds.length} builds.`);
-
-    // Step 5: Only delete the data from Redis AFTER the email has been sent successfully.
+    await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: [REPORT_EMAIL_TO], subject: `Abandoned Build Report: ${builds.length} build(s)`, html: emailHtml });
     await redis.del('abandoned_builds');
-    console.log("Report Task: Cleared reported builds from Redis.");
-
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
 
-
-// --- Task 2: Data Audit Logic (No changes needed here) ---
+// --- Task 2: Data Audit Logic ---
 async function runDataAudit() {
-    console.log("Running Task: Data Audit (Comprehensive)...");
+    console.log("Running Task: Data Audit...");
     const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
     const client = new shopify.clients.Graphql({ session: getSession() });
     let allProducts = [], hasNextPage = true, cursor = null;
@@ -123,67 +76,32 @@ async function runDataAudit() {
         allProducts.push(...pageData.edges.map(edge => edge.node));
         hasNextPage = pageData.pageInfo.hasNextPage; cursor = pageData.pageInfo.endCursor;
     } while (hasNextPage);
-    console.log(`Audit Task: Found ${allProducts.length} total component products to audit.`);
     let errors = { unpublished: [], missingData: [] };
     for (const product of allProducts) {
         if (product.tags.includes('audit:exclude')) continue;
         const isPublished = product.status === 'ACTIVE' && product.onlineStoreUrl;
         if (!isPublished) { errors.unpublished.push(`- **${product.title}**: Status is \`${product.status}\``); continue; }
-        
         const productMetafields = Object.fromEntries(product.metafields.edges.map(e => [e.node.key, e.node.value]));
         const productErrors = [];
-
-        // --- General Weight Check (for all components) ---
         const hasProductWeight = !!productMetafields.weight_g;
         let allVariantsHaveWeight = product.variants.edges.length > 0;
         for (const { node: variant } of product.variants.edges) {
             const variantMetafields = Object.fromEntries(variant.metafields.edges.map(e => [e.node.key, e.node.value]));
             if (!variantMetafields.weight_g) { allVariantsHaveWeight = false; break; }
         }
-        if (!hasProductWeight && !allVariantsHaveWeight) {
-            productErrors.push("Missing: `weight_g` at either the Product level or for ALL Variants.");
-        }
-
-        // --- Rim Specific Checks ---
+        if (!hasProductWeight && !allVariantsHaveWeight) productErrors.push("Missing: `weight_g` at either Product or Variant level.");
         if (product.tags.includes('component:rim')) {
             const requiredRimMetafields = ['rim_washer_policy', 'rim_spoke_hole_offset', 'rim_target_tension_kgf'];
             requiredRimMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            if (['Optional', 'Mandatory'].includes(productMetafields.rim_washer_policy) && !productMetafields.nipple_washer_thickness) {
-                productErrors.push("Missing Product Metafield: `nipple_washer_thickness` (required by washer policy).");
-            }
             product.variants.edges.forEach(({ node: v }) => {
                 const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
                 if (!vM.rim_erd) productErrors.push(`Variant "${v.title}" missing: \`rim_erd\``);
             });
         }
-
-        // --- Hub Specific Checks ---
         if (product.tags.includes('component:hub')) {
             const requiredHubMetafields = ['hub_type', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right'];
             requiredHubMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            const lacingPolicy = productMetafields.hub_lacing_policy || 'Standard';
-            if (productMetafields.hub_type === 'Classic Flange' && !productMetafields.hub_spoke_hole_diameter) {
-                productErrors.push("Missing Product Metafield: `hub_spoke_hole_diameter` (required for Classic Flange).");
-            }
-            product.variants.edges.forEach(({ node: v }) => {
-                const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
-                if (productMetafields.hub_type === 'Straight Pull') {
-                    const spMetafields = ['hub_sp_offset_spoke_hole_left', 'hub_sp_offset_spoke_hole_right'];
-                    spMetafields.forEach(key => { if (!vM[key]) productErrors.push(`Variant "${v.title}" missing: \`${key}\` (required for Straight Pull).`); });
-                }
-                if (lacingPolicy === 'Use Manual Override Field') {
-                    if (!vM.hub_manual_cross_value) productErrors.push(`Variant "${v.title}" missing: \`hub_manual_cross_value\` (required by lacing policy).`);
-                }
-            });
         }
-
-        // --- Spoke Specific Checks ---
-        if (product.tags.includes('component:spoke')) {
-            if (product.vendor !== 'Berd' && !productMetafields.spoke_cross_section_area_mm2) {
-                productErrors.push("Missing Product Metafield: `spoke_cross_section_area_mm2`");
-            }
-        }
-
         if (productErrors.length > 0) errors.missingData.push(`- **${product.title}**:<br><ul>${productErrors.map(e => `<li>${e}</li>`).join('')}</ul>`);
     }
     const totalIssues = errors.unpublished.length + errors.missingData.length;
@@ -192,134 +110,55 @@ async function runDataAudit() {
         if (errors.unpublished.length > 0) emailHtml += `<hr><h2>Unpublished (${errors.unpublished.length})</h2><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
         if (errors.missingData.length > 0) emailHtml += `<hr><h2>Missing Data (${errors.missingData.length})</h2><ul>${errors.missingData.map(e => `<li>${e}</li>`).join('')}</ul>`;
         await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: REPORT_EMAIL_TO, subject: `Data Health Report: ${totalIssues} Issues Found`, html: emailHtml });
-        console.log(`Audit Task: Report sent with ${totalIssues} issues.`);
-        return { status: 'success', message: `Audit complete. Found ${totalIssues} issues.` };
-    } else {
-        console.log("Audit Task: Audit complete. No issues found.");
-        return { status: 'success', message: 'Audit complete. No issues found.' };
     }
+    return { status: 'success', message: `Audit complete. Found ${totalIssues} issues.` };
 }
 
 // --- Task 3: Negative Inventory (Oversell) Audit ---
 async function runOversellAudit() {
     console.log("Running Task: Negative Inventory Audit...");
-    
-    const OVERSELL_QUERY = `
-    query {
-      productVariants(first: 250, query: "inventory_total:<0") {
-        edges {
-          node {
-            id
-            title
-            sku
-            inventoryQuantity
-            product { id title }
-          }
-        }
-      }
-    }`;
-
+    const OVERSELL_QUERY = `query { productVariants(first: 250, query: "inventory_total:<0") { edges { node { id title sku inventoryQuantity product { id title } } } } }`;
     const client = new shopify.clients.Graphql({ session: getSession() });
     const response = await client.query({ data: { query: OVERSELL_QUERY } });
     const variants = response.body.data.productVariants.edges.map(edge => edge.node);
-
-    if (variants.length === 0) {
-        console.log("Oversell Audit: No negative inventory found.");
-        return { status: 'success', message: 'No negative inventory found.' };
-    }
-
-    let newIssues = [];
-    let snoozedIssues = [];
-
+    if (variants.length === 0) return { status: 'success', message: 'No negative inventory found.' };
+    let newIssues = [], snoozedIssues = [];
     for (const variant of variants) {
-        // Strict Check: Ignore 0 or positive
         if (variant.inventoryQuantity >= 0) continue;
-
         const redisKey = `oversell_reported:${variant.id}`; 
         const alreadyReported = await redis.get(redisKey);
-
-        const cleanId = variant.id.split('/').pop();
-        const cleanProductId = variant.product.id.split('/').pop();
-        const itemData = {
-            title: `${variant.product.title} - ${variant.title}`,
-            sku: variant.sku || 'No SKU',
-            qty: variant.inventoryQuantity,
-            adminUrl: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${cleanProductId}/variants/${cleanId}`
-        };
-
+        const itemData = { title: `${variant.product.title} - ${variant.title}`, sku: variant.sku || 'No SKU', qty: variant.inventoryQuantity, adminUrl: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${variant.product.id.split('/').pop()}/variants/${variant.id.split('/').pop()}` };
         if (!alreadyReported) {
             newIssues.push(itemData);
-            // Set snooze key for 7 days
             await redis.set(redisKey, 'true', { ex: 604800 });
-        } else {
-            snoozedIssues.push(itemData);
-        }
+        } else snoozedIssues.push(itemData);
     }
-
-    // ONLY send the email if there is at least one NEW issue
     if (newIssues.length > 0) {
-        const renderTable = (items, color, isNew) => items.map(item => `
-            <tr>
-                <td style="padding:10px; border:1px solid #ddd; color: ${isNew ? '#333' : '#777'};">
-                    <strong>${item.title}</strong><br><small>SKU: ${item.sku}</small>
-                </td>
-                <td style="padding:10px; border:1px solid #ddd; text-align:center; color:${color};">
-                    <strong>${item.qty}</strong>
-                </td>
-                <td style="padding:10px; border:1px solid #ddd; text-align:center;">
-                    <a href="${item.adminUrl}" style="background:${isNew ? '#000' : '#888'}; color:#fff; padding:5px 10px; text-decoration:none; border-radius:4px; font-size:11px;">View</a>
-                </td>
-            </tr>
-        `).join('');
-
-        const snoozedHtml = snoozedIssues.length > 0 ? `
-            <div style="margin-top:40px; border-top: 2px solid #eee; pt: 20px;">
-                <h3 style="color:#666;">Persisting Issues (Currently Snoozed)</h3>
-                <p style="font-size:12px; color:#999;">The items below are still negative but were reported previously. They will not trigger a new email on their own for 7 days.</p>
-                <table style="width:100%; border-collapse:collapse; font-size:13px;">
-                    <tr style="background:#f9f9f9;">
-                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Product</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Qty</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Link</th>
-                    </tr>
-                    ${renderTable(snoozedIssues, '#999', false)}
-                </table>
-            </div>
-        ` : '';
-
-        const emailHtml = `
-            <div style="font-family:sans-serif; max-width:600px; color:#333; line-height: 1.5;">
-                <h2 style="color:#d9534f; border-bottom: 2px solid #d9534f; padding-bottom: 10px;">⚠️ New Negative Inventory Alert</h2>
-                <p>The following <strong>new</strong> items have fallen into negative stock and need attention:</p>
-                <table style="width:100%; border-collapse:collapse;">
-                    <tr style="background:#f4f4f4;">
-                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Product</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Qty</th>
-                        <th style="padding:10px; border:1px solid #ddd;">Action</th>
-                    </tr>
-                    ${renderTable(newIssues, 'red', true)}
-                </table>
-                ${snoozedHtml}
-                <p style="margin-top: 30px; font-size: 11px; color: #aaa;">LoamLabs Automated Audit Engine - Tasks: Abandoned Builds, Data Health, Oversell Audit</p>
-            </div>
-        `;
-
-        await resend.emails.send({
-            from: 'LoamLabs Audit <info@loamlabsusa.com>',
-            to: REPORT_EMAIL_TO,
-            subject: `Oversell Alert: ${newIssues.length} New Item(s) detected`,
-            html: emailHtml
-        });
-
-        console.log(`Oversell Audit: Sent report. New: ${newIssues.length}, Snoozed: ${snoozedIssues.length}`);
-        return { status: 'success', message: `Report sent. New: ${newIssues.length}` };
+        const renderTable = (items, color, isNew) => items.map(item => `<tr><td style="padding:10px; border:1px solid #ddd; color: ${isNew ? '#333' : '#777'};"><strong>${item.title}</strong><br><small>SKU: ${item.sku}</small></td><td style="padding:10px; border:1px solid #ddd; text-align:center; color:${color};"><strong>${item.qty}</strong></td><td style="padding:10px; border:1px solid #ddd; text-align:center;"><a href="${item.adminUrl}" style="background:${isNew ? '#000' : '#888'}; color:#fff; padding:5px 10px; text-decoration:none; border-radius:4px; font-size:11px;">View</a></td></tr>`).join('');
+        const emailHtml = `<div style="font-family:sans-serif; max-width:600px; color:#333; line-height: 1.5;"><h2 style="color:#d9534f; border-bottom: 2px solid #d9534f; padding-bottom: 10px;">⚠️ New Negative Inventory Alert</h2><p>The following <strong>new</strong> items have fallen into negative stock:</p><table style="width:100%; border-collapse:collapse;"><tr style="background:#f4f4f4;"><th style="padding:10px; border:1px solid #ddd; text-align:left;">Product</th><th style="padding:10px; border:1px solid #ddd;">Qty</th><th style="padding:10px; border:1px solid #ddd;">Action</th></tr>${renderTable(newIssues, 'red', true)}</table>${snoozedIssues.length > 0 ? `<h3 style="color:#666;">Snoozed Issues</h3><table style="width:100%; border-collapse:collapse;">${renderTable(snoozedIssues, '#999', false)}</table>` : ''}</div>`;
+        await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: REPORT_EMAIL_TO, subject: `Oversell Alert: ${newIssues.length} New Item(s)`, html: emailHtml });
     }
-
-    console.log("Oversell Audit: No new negative items to report today.");
-    return { status: 'success', message: 'No new issues found.' };
+    return { status: 'success', message: 'Oversell Audit Complete.' };
 }
 
-// --- MAIN HANDLER (No changes needed here) ---
+// --- NEW Task 4: Remote Vendor Watcher Trigger ---
+async function triggerVendorWatcher() {
+    console.log("Running Task: Triggering Remote Vendor Watcher...");
+    try {
+        const response = await fetch('https://loamlabs-vendor-watcher.vercel.app/api/sync', {
+            method: 'GET',
+            headers: { 'x-loam-secret': CRON_SECRET } // Use the same secret for the handshake
+        });
+        const data = await response.json();
+        console.log("Vendor Watcher Response:", data);
+        return { status: 'success', message: 'Vendor Watcher triggered successfully.' };
+    } catch (err) {
+        console.error("Vendor Watcher Trigger Failed:", err.message);
+        return { status: 'error', message: `Trigger failed: ${err.message}` };
+    }
+}
+
+// --- MAIN HANDLER ---
 module.exports = async (req, res) => {
     const authHeader = req.headers.authorization;
     if (process.env.VERCEL_ENV === 'production' && authHeader !== `Bearer ${CRON_SECRET}`) {
@@ -328,17 +167,18 @@ module.exports = async (req, res) => {
     
     try {
         console.log("--- MAIN HANDLER STARTED ---");
-        // We add runOversellAudit() to the execution list here:
+        // We add triggerVendorWatcher() to the concurrent list:
         const results = await Promise.allSettled([
             sendAbandonedBuildReport(), 
             runDataAudit(),
-            runOversellAudit() 
+            runOversellAudit(),
+            triggerVendorWatcher()
         ]);
         
         console.log("All daily tasks finished.", results);
         
         results.forEach((result, index) => { 
-            const taskNames = ['Abandoned Report', 'Data Audit', 'Oversell Audit'];
+            const taskNames = ['Abandoned Report', 'Data Audit', 'Oversell Audit', 'Vendor Watcher Trigger'];
             if (result.status === 'rejected') {
                 console.error(`Task "${taskNames[index]}" failed:`, result.reason); 
             }
@@ -346,7 +186,7 @@ module.exports = async (req, res) => {
 
         return res.status(200).json({ message: 'All daily tasks executed.', results });
     } catch (error) {
-        console.error('A critical error occurred in the main task handler:', error);
+        console.error('A critical error occurred:', error);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 };
