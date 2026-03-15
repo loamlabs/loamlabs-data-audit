@@ -141,13 +141,13 @@ async function runOversellAudit() {
     return { status: 'success', message: 'Oversell Audit Complete.' };
 }
 
-// --- NEW Task 4: Remote Vendor Watcher Trigger ---
+// --- NEW Task 4: Remote Vendor Watcher Trigger (RECONFIGURED FOR OPS DASHBOARD) ---
 async function triggerVendorWatcher() {
     console.log("Running Task: Triggering Remote Vendor Watcher...");
     try {
-        const response = await fetch('https://loamlabs-vendor-watcher.vercel.app/api/sync', {
+        const response = await fetch('https://loamlabs-ops-dashboard.vercel.app/api/sync', {
             method: 'GET',
-            headers: { 'x-loam-secret': CRON_SECRET } // Use the same secret for the handshake
+            headers: { 'x-loam-secret': CRON_SECRET } 
         });
         const data = await response.json();
         console.log("Vendor Watcher Response:", data);
@@ -167,7 +167,6 @@ module.exports = async (req, res) => {
     
     try {
         console.log("--- MAIN HANDLER STARTED ---");
-        // We add triggerVendorWatcher() to the concurrent list:
         const results = await Promise.allSettled([
             sendAbandonedBuildReport(), 
             runDataAudit(),
