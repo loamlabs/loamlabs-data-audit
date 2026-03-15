@@ -213,10 +213,7 @@ async function runOversellAudit() {
             title
             sku
             inventoryQuantity
-            product {
-              id
-              title
-            }
+            product { id title }
           }
         }
       }
@@ -231,77 +228,95 @@ async function runOversellAudit() {
         return { status: 'success', message: 'No negative inventory found.' };
     }
 
-    let reportList = [];
+    let newIssues = [];
+    let snoozedIssues = [];
 
     for (const variant of variants) {
-        // --- STRICT CHECK: Only proceed if quantity is strictly less than 0 ---
-        // This stops products with "0" from appearing in the email.
+        // Strict Check: Ignore 0 or positive
         if (variant.inventoryQuantity >= 0) continue;
 
         const redisKey = `oversell_reported:${variant.id}`;
         const alreadyReported = await redis.get(redisKey);
 
-        if (!alreadyReported) {
-            const cleanId = variant.id.split('/').pop();
-            const cleanProductId = variant.product.id.split('/').pop();
-            
-            reportList.push({
-                title: `${variant.product.title} - ${variant.title}`,
-                sku: variant.sku || 'No SKU',
-                qty: variant.inventoryQuantity,
-                adminUrl: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${cleanProductId}/variants/${cleanId}`
-            });
+        const cleanId = variant.id.split('/').pop();
+        const cleanProductId = variant.product.id.split('/').pop();
+        const itemData = {
+            title: `${variant.product.title} - ${variant.title}`,
+            sku: variant.sku || 'No SKU',
+            qty: variant.inventoryQuantity,
+            adminUrl: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${cleanProductId}/variants/${cleanId}`
+        };
 
+        if (!alreadyReported) {
+            newIssues.push(itemData);
+            // Set snooze key for 7 days
             await redis.set(redisKey, 'true', { ex: 604800 });
+        } else {
+            snoozedIssues.push(itemData);
         }
     }
 
-    if (reportList.length > 0) {
-        const rowsHtml = reportList.map(item => `
+    // ONLY send the email if there is at least one NEW issue
+    if (newIssues.length > 0) {
+        const renderTable = (items, color, isNew) => items.map(item => `
             <tr>
-                <td style="padding:10px; border:1px solid #ddd;">
-                    <strong>${item.title}</strong><br>
-                    <small>SKU: ${item.sku}</small>
+                <td style="padding:10px; border:1px solid #ddd; color: ${isNew ? '#333' : '#777'};">
+                    <strong>${item.title}</strong><br><small>SKU: ${item.sku}</small>
                 </td>
-                <td style="padding:10px; border:1px solid #ddd; text-align:center; color:red;">
+                <td style="padding:10px; border:1px solid #ddd; text-align:center; color:${color};">
                     <strong>${item.qty}</strong>
                 </td>
                 <td style="padding:10px; border:1px solid #ddd; text-align:center;">
-                    <a href="${item.adminUrl}" style="background:#000; color:#fff; padding:5px 10px; text-decoration:none; border-radius:4px; font-size:12px;">Fix Inventory</a>
+                    <a href="${item.adminUrl}" style="background:${isNew ? '#000' : '#888'}; color:#fff; padding:5px 10px; text-decoration:none; border-radius:4px; font-size:11px;">View</a>
                 </td>
             </tr>
         `).join('');
 
-        const emailHtml = `
-            <div style="font-family:sans-serif; max-width:600px;">
-                <h2>⚠️ Negative Inventory Alert</h2>
-                <p>The following items have oversold or have data errors. These items will be hidden from this report for 7 days once corrected or ignored.</p>
-                <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#f4f4f4;">
-                            <th style="padding:10px; border:1px solid #ddd; text-align:left;">Product</th>
-                            <th style="padding:10px; border:1px solid #ddd;">Qty</th>
-                            <th style="padding:10px; border:1px solid #ddd;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rowsHtml}</tbody>
+        const snoozedHtml = snoozedIssues.length > 0 ? `
+            <div style="margin-top:40px; border-top: 2px solid #eee; pt: 20px;">
+                <h3 style="color:#666;">Persisting Issues (Currently Snoozed)</h3>
+                <p style="font-size:12px; color:#999;">The items below are still negative but were reported previously. They will not trigger a new email on their own for 7 days.</p>
+                <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                    <tr style="background:#f9f9f9;">
+                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Product</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Qty</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Link</th>
+                    </tr>
+                    ${renderTable(snoozedIssues, '#999', false)}
                 </table>
+            </div>
+        ` : '';
+
+        const emailHtml = `
+            <div style="font-family:sans-serif; max-width:600px; color:#333; line-height: 1.5;">
+                <h2 style="color:#d9534f; border-bottom: 2px solid #d9534f; padding-bottom: 10px;">⚠️ New Negative Inventory Alert</h2>
+                <p>The following <strong>new</strong> items have fallen into negative stock and need attention:</p>
+                <table style="width:100%; border-collapse:collapse;">
+                    <tr style="background:#f4f4f4;">
+                        <th style="padding:10px; border:1px solid #ddd; text-align:left;">Product</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Qty</th>
+                        <th style="padding:10px; border:1px solid #ddd;">Action</th>
+                    </tr>
+                    ${renderTable(newIssues, 'red', true)}
+                </table>
+                ${snoozedHtml}
+                <p style="margin-top: 30px; font-size: 11px; color: #aaa;">LoamLabs Automated Audit Engine - Tasks: Abandoned Builds, Data Health, Oversell Audit</p>
             </div>
         `;
 
         await resend.emails.send({
             from: 'LoamLabs Audit <info@loamlabsusa.com>',
             to: REPORT_EMAIL_TO,
-            subject: `Oversell Alert: ${reportList.length} Items Need Attention`,
+            subject: `Oversell Alert: ${newIssues.length} New Item(s) detected`,
             html: emailHtml
         });
 
-        console.log(`Oversell Audit: Sent report for ${reportList.length} items.`);
-        return { status: 'success', message: `Sent report for ${reportList.length} items.` };
+        console.log(`Oversell Audit: Sent report. New: ${newIssues.length}, Snoozed: ${snoozedIssues.length}`);
+        return { status: 'success', message: `Report sent. New: ${newIssues.length}` };
     }
 
-    console.log("Oversell Audit: No new strictly negative items (some might be snoozed or exactly 0).");
-    return { status: 'success', message: 'No new negative items found.' };
+    console.log("Oversell Audit: No new negative items to report today.");
+    return { status: 'success', message: 'No new issues found.' };
 }
 
 // --- MAIN HANDLER (No changes needed here) ---
