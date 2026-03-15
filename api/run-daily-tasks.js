@@ -204,8 +204,6 @@ async function runDataAudit() {
 async function runOversellAudit() {
     console.log("Running Task: Negative Inventory Audit...");
     
-    // We use a specific GraphQL filter to only find products that are actually negative.
-    // This is very efficient and won't use much of your Vercel "time."
     const OVERSELL_QUERY = `
     query {
       productVariants(first: 250, query: "inventory_total:<0") {
@@ -236,12 +234,14 @@ async function runOversellAudit() {
     let reportList = [];
 
     for (const variant of variants) {
+        // --- STRICT CHECK: Only proceed if quantity is strictly less than 0 ---
+        // This stops products with "0" from appearing in the email.
+        if (variant.inventoryQuantity >= 0) continue;
+
         const redisKey = `oversell_reported:${variant.id}`;
-        // Check if we've reported this specific variant in the last 7 days
         const alreadyReported = await redis.get(redisKey);
 
         if (!alreadyReported) {
-            // It's a new issue (or 7 days have passed). Add to report.
             const cleanId = variant.id.split('/').pop();
             const cleanProductId = variant.product.id.split('/').pop();
             
@@ -249,11 +249,9 @@ async function runOversellAudit() {
                 title: `${variant.product.title} - ${variant.title}`,
                 sku: variant.sku || 'No SKU',
                 qty: variant.inventoryQuantity,
-                // Deep link directly to the inventory management page for this variant
                 adminUrl: `https://${SHOPIFY_STORE_DOMAIN}/admin/products/${cleanProductId}/variants/${cleanId}`
             });
 
-            // "Snooze" this item for 7 days (604800 seconds)
             await redis.set(redisKey, 'true', { ex: 604800 });
         }
     }
@@ -302,8 +300,8 @@ async function runOversellAudit() {
         return { status: 'success', message: `Sent report for ${reportList.length} items.` };
     }
 
-    console.log("Oversell Audit: All negative items are currently in the 7-day snooze period.");
-    return { status: 'success', message: 'Issues found, but all are currently snoozed.' };
+    console.log("Oversell Audit: No new strictly negative items (some might be snoozed or exactly 0).");
+    return { status: 'success', message: 'No new negative items found.' };
 }
 
 // --- MAIN HANDLER (No changes needed here) ---
