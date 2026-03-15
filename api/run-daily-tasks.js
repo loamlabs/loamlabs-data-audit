@@ -145,7 +145,7 @@ async function runOversellAudit() {
 async function triggerVendorWatcher() {
     console.log("Running Task: Triggering Remote Vendor Watcher...");
     try {
-        const response = await fetch('https://loamlabs-ops-dashboard.vercel.app/api/sync', {
+        const response = await fetch('https://loamlabs-vendor-watcher.vercel.app/api/sync', {
             method: 'GET',
             headers: { 'x-loam-secret': CRON_SECRET } 
         });
