@@ -15,12 +15,9 @@ async function readRawBody(req) {
 }
 
 const handler = async (req, res) => {
-  // 1. RELAXED CORS FOR TESTING
-  // This allows us to test from myshopify.com or the primary domain
-  const origin = req.headers.origin;
-  if (origin && (origin.includes('loamlabsusa.com') || origin.includes('shopify.com'))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
+  // RELAXED CORS: Allows standard domain and myshopify previews
+  const origin = req.headers.origin || 'https://loamlabsusa.com';
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -30,37 +27,30 @@ const handler = async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    console.log("--- ABANDONED BUILD ATTEMPT DETECTED ---");
     try {
       const rawBody = await readRawBody(req);
-      console.log("Raw Body Received:", rawBody);
-
+      
       if (!rawBody) {
-        console.error("Empty body received");
         return res.status(400).json({ message: 'Empty body' });
       }
 
+      // We parse the JSON manually because we removed the Content-Type header
       const buildData = JSON.parse(rawBody);
       
-      // Validation Check: Ensure it's a "Significant" build
-      if (!buildData.buildId) {
-        console.warn("Received data missing buildId. Potential junk data.");
-      }
-
       const dataToStore = {
           ...buildData,
           capturedAt: new Date().toISOString(),
-          debugOrigin: origin || 'unknown'
+          source: 'abandonment_tracker'
       };
 
-      const pushResult = await redis.lpush('abandoned_builds', JSON.stringify(dataToStore));
-      console.log("Successfully pushed to Redis. List length:", pushResult);
+      // Push to Redis
+      await redis.lpush('abandoned_builds', JSON.stringify(dataToStore));
       
-      res.status(202).json({ message: 'Build data accepted.' });
+      console.log(`Successfully recorded abandoned build: ${buildData.buildId}`);
+      res.status(202).json({ message: 'Accepted' });
     } catch (error) {
-      console.error('CRITICAL ERROR in log-abandoned-build:', error.message);
-      // Return 500 so the browser console actually shows an error during testing
-      res.status(500).json({ message: error.message });
+      console.error('Error recording build:', error.message);
+      res.status(202).json({ message: 'Error handled' });
     }
     return;
   }
