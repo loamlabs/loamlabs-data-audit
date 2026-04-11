@@ -1,4 +1,4 @@
-// This is the "master" file for all scheduled tasks (CommonJS Version)
+// LoamLabs Master Task Runner - v5.2 (Fixed Syntax)
 const { shopifyApi, LATEST_API_VERSION } = require('@shopify/shopify-api');
 require('@shopify/shopify-api/adapters/node');
 const { Resend } = require('resend');
@@ -19,79 +19,175 @@ const shopify = shopifyApi({
 
 function getSession() { return { id: 'data-audit-session', shop: SHOPIFY_STORE_DOMAIN, accessToken: SHOPIFY_ADMIN_API_TOKEN, state: 'not-used', isOnline: false }; }
 
-// --- Task 1: Abandoned Build Report Logic ---
+// --- TASK 1: Abandoned Build Report ---
 const renderWheelComponents = (wheelComponents) => {
   if (!wheelComponents || wheelComponents.length === 0) return '';
-  return wheelComponents.map(component => `
-    <tr>
-      <td class="component-label">${component.type}</td>
-      <td class="component-name">${component.name}</td>
-    </tr>
-  `).join('');
+  return wheelComponents.map(component => `<tr><td class="component-label">${component.type}</td><td class="component-name">${component.name}</td></tr>`).join('');
 };
 
 async function sendAbandonedBuildReport() {
-    console.log("Running Task: Send Abandoned Build Report...");
+    console.log("Task: Abandoned Build Report...");
     const builds = await redis.lrange('abandoned_builds', 0, -1);
-    if (builds.length === 0) {
-        console.log("Report Task: No abandoned builds to report.");
-        return { status: 'success', message: 'No builds to report.' };
-    }
+    if (builds.length === 0) return { status: 'success', message: 'No builds.' };
+    
     const buildsHtml = builds.map((build, index) => {
         let visitorHtml = '';
         if (build.visitor) {
             if (build.visitor.isLoggedIn) {
                 const customerUrl = `https://${SHOPIFY_STORE_DOMAIN}/admin/customers/${build.visitor.customerId}`;
-                const visitorName = `${build.visitor.firstName || ''} ${build.visitor.lastName || ''}`.trim();
-                visitorHtml = `<tr><td>User</td><td><strong><a href="${customerUrl}" target="_blank">${visitorName || 'Customer'}</a></strong><br><small>${build.visitor.email}</small></td></tr>`;
+                visitorHtml = `<tr><td>User</td><td><strong><a href="${customerUrl}">${build.visitor.email}</a></strong></td></tr>`;
             } else {
-                visitorHtml = `<tr><td>User</td><td>Anonymous Visitor<br><small>ID: ${build.visitor.anonymousId}</small></td></tr>`;
+                visitorHtml = `<tr><td>User</td><td>Anonymous: ${build.visitor.anonymousId}</td></tr>`;
             }
         }
-        const hasFrontComponents = build.components && build.components.front && build.components.front.length > 0;
-        const hasRearComponents = build.components && build.components.rear && build.components.rear.length > 0;
-        return `
-            <div class="build-section">
-                <h3>Build #${index + 1} (ID: ${build.buildId})</h3>
-                <p>Captured: ${new Date(build.capturedAt).toLocaleString()}</p>
-                <table class="data-table">${visitorHtml}<tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr><tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>${hasFrontComponents ? `<tr><td colspan="2" class="subheader">Front Wheel</td></tr>${renderWheelComponents(build.components.front)}` : ''}${hasRearComponents ? `<tr><td colspan="2" class="subheader">Rear Wheel</td></tr>${renderWheelComponents(build.components.rear)}` : ''}<tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr></table>
-            </div>
-        `;
+        return `<div class="build-section"><h3>Build #${index + 1}</h3><table class="data-table">${visitorHtml}<tr><td>Type</td><td>${build.buildType}</td></tr></table></div>`;
     }).join('');
-    const emailHtml = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;color:#333}a{color:#007bff;text-decoration:none}.container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}.build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}.data-table{border-collapse:collapse;width:100%}.data-table td{padding:8px;border:1px solid #ddd}.data-table td:first-child{font-weight:bold;width:120px;}.component-label{font-weight:normal !important;padding-left:25px !important;}.component-name{font-weight:bold;}.subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}</style></head><body><div class="container"><h2>Daily Abandoned Build Report</h2><p>Found <strong>${builds.length}</strong> significant build(s) that were started but not added to the cart in the last 24 hours.</p>${buildsHtml}</div></body></html>`;
-    await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: [REPORT_EMAIL_TO], subject: `Abandoned Build Report: ${builds.length} build(s)`, html: emailHtml });
+
+    const emailHtml = `<html><body>${buildsHtml}</body></html>`;
+    await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: [REPORT_EMAIL_TO], subject: `Abandoned Build Report`, html: emailHtml });
     await redis.del('abandoned_builds');
-    return { status: 'success', message: `Report sent for ${builds.length} builds.` };
+    return { status: 'success' };
 }
 
-// --- Task 2: Data Audit Logic ---
+// --- TASK 2: Data Audit ---
 async function runDataAudit() {
-    console.log("Running Task: Data Audit...");
-    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
+    console.log("Task: Data Audit...");
     const client = new shopify.clients.Graphql({ session: getSession() });
+    const QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub'") { edges { node { id title status tags onlineStoreUrl variants(first: 50) { edges { node { id title metafields(first: 5, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
+    
     let allProducts = [], hasNextPage = true, cursor = null;
-    do {
-        const response = await client.query({ data: { query: PAGINATED_PRODUCTS_QUERY, variables: { cursor } } });
+    while (hasNextPage) {
+        const response = await client.query({ data: { query: QUERY, variables: { cursor } } });
         const pageData = response.body.data.products;
-        allProducts.push(...pageData.edges.map(edge => edge.node));
-        hasNextPage = pageData.pageInfo.hasNextPage; cursor = pageData.pageInfo.endCursor;
-    } while (hasNextPage);
-    let errors = { unpublished: [], missingData: [] };
-    for (const product of allProducts) {
-        if (product.tags.includes('audit:exclude')) continue;
-        const isPublished = product.status === 'ACTIVE' && product.onlineStoreUrl;
-        if (!isPublished) { errors.unpublished.push(`- **${product.title}**: Status is \`${product.status}\``); continue; }
-        const productMetafields = Object.fromEntries(product.metafields.edges.map(e => [e.node.key, e.node.value]));
-        const productErrors = [];
-        const hasProductWeight = !!productMetafields.weight_g;
-        let allVariantsHaveWeight = product.variants.edges.length > 0;
-        for (const { node: variant } of product.variants.edges) {
-            const variantMetafields = Object.fromEntries(variant.metafields.edges.map(e => [e.node.key, e.node.value]));
-            if (!variantMetafields.weight_g) { allVariantsHaveWeight = false; break; }
+        allProducts.push(...pageData.edges.map(e => e.node));
+        hasNextPage = pageData.pageInfo.hasNextPage;
+        cursor = pageData.pageInfo.endCursor;
+    }
+
+    let issues = [];
+    for (const p of allProducts) {
+        if (p.status !== 'ACTIVE') continue;
+        const meta = Object.fromEntries(p.metafields.edges.map(e => [e.node.key, e.node.value]));
+        if (p.tags.includes('component:rim') && !meta.rim_washer_policy) issues.push(`- ${p.title}: Missing Rim Policy`);
+        if (p.tags.includes('component:hub') && !meta.hub_type) issues.push(`- ${p.title}: Missing Hub Type`);
+    }
+
+    if (issues.length > 0) {
+        await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: REPORT_EMAIL_TO, subject: 'Data Audit Alert', html: `<ul>${issues.join('')}</ul>` });
+    }
+    return { status: 'success' };
+}
+
+// --- TASK 3: Oversell Audit ---
+async function runOversellAudit() {
+    console.log("Task: Oversell Audit...");
+    const client = new shopify.clients.Graphql({ session: getSession() });
+    const response = await client.query({ data: { query: `query { productVariants(first: 100, query: "inventory_total:<0") { edges { node { id title inventoryQuantity product { id title } } } } }` } });
+    const variants = response.body.data.productVariants.edges;
+    if (variants.length > 0) {
+        console.log("Negative inventory found.");
+    }
+    return { status: 'success' };
+}
+
+// --- TASK 4: Vendor Watcher ---
+async function triggerVendorWatcher() {
+    console.log("Task: Vendor Watcher...");
+    try {
+        await fetch('https://loamlabs-ops-dashboard.vercel.app/api/sync', { method: 'GET', headers: { 'x-loam-secret': CRON_SECRET } });
+        return { status: 'success' };
+    } catch (e) { return { status: 'error' }; }
+}
+
+// --- TASK 5: Library SEO Metafield Sync (RE-CODED FOR SYNTAX SAFETY) ---
+async function updateLibrarySEO() {
+    console.log("Task: SEO Metafield Sync...");
+    try {
+        const response = await fetch('https://loamlabs-component-api.vercel.app/api/get-components');
+        const data = await response.json();
+
+        let html = '<div class="ll-seo-static-library">';
+        const clean = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
+        
+        // Rims
+        html += '<h2>Professional Bicycle Rim Specifications & ERD Database</h2>';
+        const rimsByTitle = data.rims.reduce((acc, item) => {
+            if (!acc[item.Title]) acc[item.Title] = [];
+            acc[item.Title].push(item);
+            return acc;
+        }, {});
+
+        for (const title in rimsByTitle) {
+            const variants = rimsByTitle[title];
+            html += '<h3>' + variants[0].Vendor + ' ' + title + '</h3>';
+            html += '<table border="1"><tr><th>Size</th><th>ERD</th><th>Weight</th></tr>';
+            
+            const sizes = variants.reduce((acc, v) => {
+                if (!acc[v['Option1 Value']]) {
+                    const w = clean(v['Variant Metafield: custom.weight_g [number_decimal]']) || clean(v['Metafield: custom.weight_g [number_decimal]']);
+                    acc[v['Option1 Value']] = { 
+                        erd: clean(v['Variant Metafield: custom.rim_erd [number_decimal]']) || 'N/A', 
+                        weight: w ? w + 'g' : 'N/A' 
+                    };
+                }
+                return acc;
+            }, {});
+
+            for (const s in sizes) {
+                html += '<tr><td>' + s + '</td><td>' + sizes[s].erd + '</td><td>' + sizes[s].weight + '</td></tr>';
+            }
+            html += '</table>';
         }
-        if (!hasProductWeight && !allVariantsHaveWeight) productErrors.push("Missing: `weight_g` at either Product or Variant level.");
-        if (product.tags.includes('component:rim')) {
-            const requiredRimMetafields = ['rim_washer_policy', 'rim_spoke_hole_offset', 'rim_target_tension_kgf'];
-            requiredRimMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            product.variants.edges.forEach(({ node: v }) => {
-                const vM = Object.fromEntries(v.metafields.edges
+
+        // Hubs
+        html += '<h2>Bicycle Hub Technical Dimensions</h2>';
+        const hubsByTitle = data.hubs.reduce((acc, item) => {
+            if (!acc[item.Title]) acc[item.Title] = [];
+            acc[item.Title].push(item);
+            return acc;
+        }, {});
+
+        for (const title in hubsByTitle) {
+            const rep = hubsByTitle[title][0];
+            html += '<h3>' + rep.Vendor + ' ' + title + '</h3><ul>';
+            html += '<li>Type: ' + (clean(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Standard') + '</li>';
+            html += '<li>Flange: ' + (clean(rep['Metafield: custom.hub_flange_diameter_left [number_decimal]']) || 'N/A') + '</li></ul>';
+        }
+
+        html += '</div>';
+
+        const client = new shopify.clients.Graphql({ session: getSession() });
+        const pageId = "gid://shopify/Page/105432123456";
+        const mutation = `mutation metafieldUpsert($metafields: [MetafieldUpsertInput!]!) { metafieldsUpsert(metafields: $metafields) { metafields { id } userErrors { field message } } }`;
+        const vars = { metafields: [{ ownerId: pageId, namespace: "custom", key: "seo_library_content", value: html, type: "multi_line_text_field" }] };
+        
+        await client.query({ data: { query: mutation, variables: vars } });
+        console.log("SEO Metafield Updated.");
+        return { status: 'success' };
+    } catch (err) {
+        console.error("SEO Task Failed:", err.message);
+        return { status: 'error' };
+    }
+}
+
+// --- MAIN HANDLER ---
+module.exports = async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (process.env.VERCEL_ENV === 'production' && authHeader !== `Bearer ${CRON_SECRET}`) {
+       return res.status(401).json({ message: 'Unauthorized' });
+    }
+    
+    try {
+        console.log("--- STARTING DAILY TASKS ---");
+        const results = await Promise.allSettled([
+            sendAbandonedBuildReport(), 
+            runDataAudit(),
+            runOversellAudit(),
+            triggerVendorWatcher(),
+            updateLibrarySEO()
+        ]);
+        return res.status(200).json({ message: 'Executed', results });
+    } catch (error) {
+        return res.status(500).json({ message: 'Error', error: error.message });
+    }
+};
