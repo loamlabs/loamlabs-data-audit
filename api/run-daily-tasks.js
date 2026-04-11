@@ -212,6 +212,18 @@ async function updateLibrarySEO() {
                 const rep = hubsByTitle[title][0];
                 const fdl = clean(rep['Metafield: custom.hub_flange_diameter_left [number_decimal]']);
                 const fdr = clean(rep['Metafield: custom.hub_flange_diameter_right [number_decimal]']);
+                const cL = clean(rep['Variant Metafield: custom.hub_lacing_cross_left [number_decimal]']);
+                const cR = clean(rep['Variant Metafield: custom.hub_lacing_cross_right [number_decimal]']);
+                const sL = clean(rep['Variant Metafield: custom.hub_spoke_count_left [number_decimal]']);
+                const sR = clean(rep['Variant Metafield: custom.hub_spoke_count_right [number_decimal]']);
+
+                let engineeringSpecs = '';
+                if (cL !== null || cR !== null) {
+                    engineeringSpecs += ` Cross Pattern: ${cL ?? 'N/A'}/${cR ?? 'N/A'}.`;
+                }
+                if (sL !== null || sR !== null) {
+                    engineeringSpecs += ` Spoke Distribution: ${sL ?? 'N/A'}/${sR ?? 'N/A'}.`;
+                }
                 html += `<p><strong>${rep.Vendor || ''} ${title}</strong>:Flange ${fdl || 'N/A'}/${fdr || 'N/A'}</p>`;
             }
         }
