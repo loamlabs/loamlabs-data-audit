@@ -167,12 +167,12 @@ async function updateLibrarySEO() {
         });
         
         const data = await response.json();
-        if (!data || !data.rims || !data.hubs) throw new Error("Invalid API Data");
+        if (!data || !data.rims) throw new Error("Invalid API Data");
 
         let html = `<div class="ll-seo-static-library">`;
         const clean = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
 
-        // Rims - Compact Format
+        // --- RIMS (Prioritized for SEO) ---
         html += `<h2>Rim ERD & Weight Database</h2>`;
         const rimsByTitle = data.rims.reduce((acc, item) => {
             if (item?.Title) {
@@ -183,48 +183,44 @@ async function updateLibrarySEO() {
         }, {});
 
         for (const title in rimsByTitle) {
+            // CHARACTER LIMIT SAFETY GATE
+            if (html.length > 60000) break; 
+
             const variants = rimsByTitle[title];
             const vendor = variants[0].Vendor || '';
-            // Just list the specs in one line per size to save space
             let specLines = variants.map(v => {
                 const erd = clean(v['Variant Metafield: custom.rim_erd [number_decimal]']);
                 const weight = clean(v['Variant Metafield: custom.weight_g [number_decimal]']) || clean(v['Metafield: custom.weight_g [number_decimal]']);
-                return `${v['Option1 Value']}: ERD ${erd || 'N/A'}, ${weight ? weight + 'g' : ''}`;
+                return `${v['Option1 Value']}:ERD ${erd || 'N/A'}${weight ? ',' + weight + 'g' : ''}`;
             });
-            html += `<p><strong>${vendor} ${title}</strong>: ${[...new Set(specLines)].join(' | ')}</p>`;
+            html += `<p><strong>${vendor} ${title}</strong>:${[...new Set(specLines)].join('|')}</p>`;
         }
 
-        // Hubs - Compact Format
-        html += `<h2>Hub Technical Specifications</h2>`;
-        const hubsByTitle = data.hubs.reduce((acc, item) => {
-            if (item?.Title) {
-                if (!acc[item.Title]) acc[item.Title] = [];
-                acc[item.Title].push(item);
-            }
-            return acc;
-        }, {});
+        // --- HUBS (Only if space remains) ---
+        if (html.length < 55000) {
+            html += `<h2>Hub Technical Specifications</h2>`;
+            const hubsByTitle = data.hubs.reduce((acc, item) => {
+                if (item?.Title) {
+                    if (!acc[item.Title]) acc[item.Title] = [];
+                    acc[item.Title].push(item);
+                }
+                return acc;
+            }, {});
 
-        for (const title in hubsByTitle) {
-            const rep = hubsByTitle[title][0];
-            const type = clean(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Hub';
-            const fdl = clean(rep['Metafield: custom.hub_flange_diameter_left [number_decimal]']);
-            const fdr = clean(rep['Metafield: custom.hub_flange_diameter_right [number_decimal]']);
-            html += `<p><strong>${rep.Vendor || ''} ${title}</strong> (${type}): Flange ${fdl || 'N/A'}/${fdr || 'N/A'}</p>`;
+            for (const title in hubsByTitle) {
+                if (html.length > 64000) break; 
+                const rep = hubsByTitle[title][0];
+                const fdl = clean(rep['Metafield: custom.hub_flange_diameter_left [number_decimal]']);
+                const fdr = clean(rep['Metafield: custom.hub_flange_diameter_right [number_decimal]']);
+                html += `<p><strong>${rep.Vendor || ''} ${title}</strong>:Flange ${fdl || 'N/A'}/${fdr || 'N/A'}</p>`;
+            }
         }
 
         html += `</div>`;
-
-        // Check if we are still over the limit
-        console.log("Final HTML Length:", html.length);
-        if (html.length > 65000) {
-            html = html.substring(0, 64900) + "</div>"; // Emergency truncate
-            console.warn("HTML was truncated to fit Shopify limits.");
-        }
+        console.log("Final SEO HTML Length:", html.length);
 
         const client = new shopify.clients.Graphql({ session: getSession() });
-        
-        // !!! UPDATE THE NUMBER BELOW WITH THE ONE FROM YOUR URL !!!
-        const pageId = "gid://shopify/Page/80115302707"; 
+        const pageId = "gid://shopify/Page/152231215411"; // CORRECTED ID
 
         const mutation = `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
             metafieldsSet(metafields: $metafields) {
