@@ -167,17 +167,15 @@ async function updateLibrarySEO() {
         });
         
         const data = await response.json();
-        if (!data || !data.rims || !data.hubs) {
-            throw new Error("API returned invalid data structure");
-        }
+        if (!data || !data.rims || !data.hubs) throw new Error("Invalid API Data");
 
         let html = `<div class="ll-seo-static-library">`;
-        const cleanValue = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
-        
-        // Rims Section
-        html += `<h2>Professional Bicycle Rim Specifications & ERD Database</h2>`;
+        const clean = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
+
+        // Rims - Compact Format
+        html += `<h2>Rim ERD & Weight Database</h2>`;
         const rimsByTitle = data.rims.reduce((acc, item) => {
-            if (item && item.Title) {
+            if (item?.Title) {
                 if (!acc[item.Title]) acc[item.Title] = [];
                 acc[item.Title].push(item);
             }
@@ -186,30 +184,20 @@ async function updateLibrarySEO() {
 
         for (const title in rimsByTitle) {
             const variants = rimsByTitle[title];
-            html += `<h3>${variants[0].Vendor || ''} ${title}</h3>`;
-            html += `<table border="1"><tr><th>Size</th><th>ERD</th><th>Weight</th></tr>`;
-            
-            const sizes = variants.reduce((acc, v) => {
-                if (v && v['Option1 Value'] && !acc[v['Option1 Value']]) {
-                    const weight = cleanValue(v['Variant Metafield: custom.weight_g [number_decimal]']) || cleanValue(v['Metafield: custom.weight_g [number_decimal]']);
-                    acc[v['Option1 Value']] = { 
-                        erd: cleanValue(v['Variant Metafield: custom.rim_erd [number_decimal]']) || 'N/A', 
-                        weight: weight ? weight + 'g' : 'N/A' 
-                    };
-                }
-                return acc;
-            }, {});
-
-            for (const s in sizes) {
-                html += `<tr><td>${s}</td><td>${sizes[s].erd}</td><td>${sizes[s].weight}</td></tr>`;
-            }
-            html += `</table>`;
+            const vendor = variants[0].Vendor || '';
+            // Just list the specs in one line per size to save space
+            let specLines = variants.map(v => {
+                const erd = clean(v['Variant Metafield: custom.rim_erd [number_decimal]']);
+                const weight = clean(v['Variant Metafield: custom.weight_g [number_decimal]']) || clean(v['Metafield: custom.weight_g [number_decimal]']);
+                return `${v['Option1 Value']}: ERD ${erd || 'N/A'}, ${weight ? weight + 'g' : ''}`;
+            });
+            html += `<p><strong>${vendor} ${title}</strong>: ${[...new Set(specLines)].join(' | ')}</p>`;
         }
 
-        // Hubs Section
-        html += `<h2>High Performance Bicycle Hub Technical Dimensions</h2>`;
+        // Hubs - Compact Format
+        html += `<h2>Hub Technical Specifications</h2>`;
         const hubsByTitle = data.hubs.reduce((acc, item) => {
-            if (item && item.Title) {
+            if (item?.Title) {
                 if (!acc[item.Title]) acc[item.Title] = [];
                 acc[item.Title].push(item);
             }
@@ -217,29 +205,33 @@ async function updateLibrarySEO() {
         }, {});
 
         for (const title in hubsByTitle) {
-            const variants = hubsByTitle[title];
-            const rep = variants[0];
-            const pos = cleanValue(rep['Variant Metafield: custom.wheel_spec_position [single_line_text_field]']) || '';
-            const counts = [...new Set(variants.map(v => v['Option1 Value']))].sort().join(', ');
-            
-            html += `<h3>${rep.Vendor || ''} ${title} (${pos})</h3>`;
-            html += `<ul><li>Hub Type: ${cleanValue(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Standard'}</li>`;
-            html += `<li>Available Holes: ${counts}</li></ul>`;
+            const rep = hubsByTitle[title][0];
+            const type = clean(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Hub';
+            const fdl = clean(rep['Metafield: custom.hub_flange_diameter_left [number_decimal]']);
+            const fdr = clean(rep['Metafield: custom.hub_flange_diameter_right [number_decimal]']);
+            html += `<p><strong>${rep.Vendor || ''} ${title}</strong> (${type}): Flange ${fdl || 'N/A'}/${fdr || 'N/A'}</p>`;
         }
 
         html += `</div>`;
 
-        const client = new shopify.clients.Graphql({ session: getSession() });
-        const pageId = "gid://shopify/Page/152231215411";
+        // Check if we are still over the limit
+        console.log("Final HTML Length:", html.length);
+        if (html.length > 65000) {
+            html = html.substring(0, 64900) + "</div>"; // Emergency truncate
+            console.warn("HTML was truncated to fit Shopify limits.");
+        }
 
-        const mutation = `
-            mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
-              metafieldsSet(metafields: $metafields) {
+        const client = new shopify.clients.Graphql({ session: getSession() });
+        
+        // !!! UPDATE THE NUMBER BELOW WITH THE ONE FROM YOUR URL !!!
+        const pageId = "gid://shopify/Page/80115302707"; 
+
+        const mutation = `mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+            metafieldsSet(metafields: $metafields) {
                 metafields { id }
                 userErrors { field message }
-              }
             }
-        `;
+        }`;
 
         const vars = {
             metafields: [{
@@ -255,14 +247,14 @@ async function updateLibrarySEO() {
         
         if (res.body.data.metafieldsSet.userErrors.length > 0) {
             console.error("Shopify Metafield Error:", res.body.data.metafieldsSet.userErrors);
-            return { status: 'error', message: res.body.data.metafieldsSet.userErrors[0].message };
+            return { status: 'error' };
         }
 
         console.log("Library SEO Metafield Updated Successfully.");
         return { status: 'success' };
     } catch (err) {
         console.error("Library SEO Task Failed:", err.message);
-        return { status: 'error', message: err.message };
+        return { status: 'error' };
     }
 }
 
