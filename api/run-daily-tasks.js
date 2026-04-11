@@ -165,22 +165,29 @@ async function updateLibrarySEO() {
         const response = await fetch('https://loamlabs-component-api.vercel.app/api/get-components');
         const data = await response.json();
 
+        // Safety Check: If the API didn't return rims or hubs, stop here.
+        if (!data || !data.rims || !data.hubs) {
+            throw new Error("API returned invalid data structure");
+        }
+
         let html = '<div class="ll-seo-static-library">';
         const cleanValue = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
         
         // Rims Section
         html += '<h2>Professional Bicycle Rim Specifications & ERD Database</h2>';
         const rimsByTitle = data.rims.reduce((acc, item) => {
-            if (!acc[item.Title]) acc[item.Title] = [];
-            acc[item.Title].push(item);
+            if (item && item.Title) {
+                if (!acc[item.Title]) acc[item.Title] = [];
+                acc[item.Title].push(item);
+            }
             return acc;
         }, {});
 
         for (const title in rimsByTitle) {
             const variants = rimsByTitle[title];
-            html += '<h3>' + variants[0].Vendor + ' ' + title + '</h3><table border="1"><tr><th>Size</th><th>ERD</th><th>Weight</th></tr>';
+            html += '<h3>' + (variants[0].Vendor || '') + ' ' + title + '</h3><table border="1"><tr><th>Size</th><th>ERD</th><th>Weight</th></tr>';
             const sizes = variants.reduce((acc, v) => {
-                if (!acc[v['Option1 Value']]) {
+                if (v && v['Option1 Value'] && !acc[v['Option1 Value']]) {
                     const weight = cleanValue(v['Variant Metafield: custom.weight_g [number_decimal]']) || cleanValue(v['Metafield: custom.weight_g [number_decimal]']);
                     acc[v['Option1 Value']] = { 
                         erd: cleanValue(v['Variant Metafield: custom.rim_erd [number_decimal]']) || 'N/A', 
@@ -198,15 +205,17 @@ async function updateLibrarySEO() {
         // Hubs Section
         html += '<h2>High Performance Bicycle Hub Technical Dimensions</h2>';
         const hubsByTitle = data.hubs.reduce((acc, item) => {
-            if (!acc[item.Title]) acc[item.Title] = [];
-            acc[item.Title].push(item);
+            if (item && item.Title) {
+                if (!acc[item.Title]) acc[item.Title] = [];
+                acc[item.Title].push(item);
+            }
             return acc;
         }, {});
 
         for (const title in hubsByTitle) {
             const rep = hubsByTitle[title][0];
             const counts = [...new Set(hubsByTitle[title].map(v => v['Option1 Value']))].sort().join(', ');
-            html += '<h3>' + rep.Vendor + ' ' + title + '</h3><ul>';
+            html += '<h3>' + (rep.Vendor || '') + ' ' + title + '</h3><ul>';
             html += '<li>Hub Type: ' + (cleanValue(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Standard') + '</li>';
             html += '<li>Available Holes: ' + counts + '</li></ul>';
         }
