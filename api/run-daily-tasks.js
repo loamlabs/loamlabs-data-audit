@@ -230,7 +230,7 @@ async function updateLibrarySEO() {
         html += `</div>`;
 
         const client = new shopify.clients.Graphql({ session: getSession() });
-        const pageId = "gid://shopify/Page/105432123456";
+        const pageId = "gid://shopify/Page/152231215411";
 
         const mutation = `
             mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
