@@ -162,12 +162,21 @@ async function triggerVendorWatcher() {
 async function updateLibrarySEO() {
     console.log("Running Task: Update Library SEO Metafield...");
     try {
-        const response = await fetch('https://loamlabs-component-api.vercel.app/api/get-components');
+        // We must include the Referer header to bypass the security check mentioned in Section 5.1
+        const response = await fetch('https://loamlabs-component-api.vercel.app/api/get-components', {
+            headers: {
+                'Referer': 'https://loamlabsusa.com/'
+            }
+        });
+        
         const data = await response.json();
 
-        // Safety Check: If the API didn't return rims or hubs, stop here.
+        // Debug: Log the keys we received to verify connectivity
+        console.log("API Keys Received:", Object.keys(data));
+
         if (!data || !data.rims || !data.hubs) {
-            throw new Error("API returned invalid data structure");
+            console.error("API Response Data:", JSON.stringify(data).substring(0, 200));
+            throw new Error("API returned invalid data structure (Check Referer whitelist)");
         }
 
         let html = '<div class="ll-seo-static-library">';
