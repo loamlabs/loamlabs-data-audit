@@ -171,11 +171,11 @@ async function updateLibrarySEO() {
             throw new Error("API returned invalid data structure");
         }
 
-        let html = '<div class="ll-seo-static-library">';
+        let html = `<div class="ll-seo-static-library">`;
         const cleanValue = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
         
         // Rims Section
-        html += '<h2>Professional Bicycle Rim Specifications & ERD Database</h2>';
+        html += `<h2>Professional Bicycle Rim Specifications & ERD Database</h2>`;
         const rimsByTitle = data.rims.reduce((acc, item) => {
             if (item && item.Title) {
                 if (!acc[item.Title]) acc[item.Title] = [];
@@ -186,7 +186,9 @@ async function updateLibrarySEO() {
 
         for (const title in rimsByTitle) {
             const variants = rimsByTitle[title];
-            html += '<h3>' + (variants[0].Vendor || '') + ' ' + title + '</h3><table border="1"><tr><th>Size</th><th>ERD</th><th>Weight</th></tr>';
+            html += `<h3>${variants[0].Vendor || ''} ${title}</h3>`;
+            html += `<table border="1"><tr><th>Size</th><th>ERD</th><th>Weight</th></tr>`;
+            
             const sizes = variants.reduce((acc, v) => {
                 if (v && v['Option1 Value'] && !acc[v['Option1 Value']]) {
                     const weight = cleanValue(v['Variant Metafield: custom.weight_g [number_decimal]']) || cleanValue(v['Metafield: custom.weight_g [number_decimal]']);
@@ -197,14 +199,15 @@ async function updateLibrarySEO() {
                 }
                 return acc;
             }, {});
+
             for (const s in sizes) {
-                html += '<tr><td>' + s + '</td><td>' + sizes[s].erd + '</td><td>' + sizes[s].weight + '</td></tr>';
+                html += `<tr><td>${s}</td><td>${sizes[s].erd}</td><td>${sizes[s].weight}</td></tr>`;
             }
-            html += '</table>';
+            html += `</table>`;
         }
 
         // Hubs Section
-        html += '<h2>High Performance Bicycle Hub Technical Dimensions</h2>';
+        html += `<h2>High Performance Bicycle Hub Technical Dimensions</h2>`;
         const hubsByTitle = data.hubs.reduce((acc, item) => {
             if (item && item.Title) {
                 if (!acc[item.Title]) acc[item.Title] = [];
@@ -219,9 +222,50 @@ async function updateLibrarySEO() {
             const pos = cleanValue(rep['Variant Metafield: custom.wheel_spec_position [single_line_text_field]']) || '';
             const counts = [...new Set(variants.map(v => v['Option1 Value']))].sort().join(', ');
             
-            html += '<h3>' + (rep.Vendor || '') + ' ' + title + ' (' + pos + ')</h3><ul>';
-            html += '<li>Hub Type: ' + (cleanValue(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Standard') + '</li>';
-            html += '<li>Availa
+            html += `<h3>${rep.Vendor || ''} ${title} (${pos})</h3>`;
+            html += `<ul><li>Hub Type: ${cleanValue(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Standard'}</li>`;
+            html += `<li>Available Holes: ${counts}</li></ul>`;
+        }
+
+        html += `</div>`;
+
+        const client = new shopify.clients.Graphql({ session: getSession() });
+        const pageId = "gid://shopify/Page/105432123456";
+
+        const mutation = `
+            mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+              metafieldsSet(metafields: $metafields) {
+                metafields { id }
+                userErrors { field message }
+              }
+            }
+        `;
+
+        const vars = {
+            metafields: [{
+                ownerId: pageId,
+                namespace: "custom",
+                key: "seo_library_content",
+                value: html,
+                type: "multi_line_text_field"
+            }]
+        };
+        
+        const res = await client.query({ data: { query: mutation, variables: vars } });
+        
+        if (res.body.data.metafieldsSet.userErrors.length > 0) {
+            console.error("Shopify Metafield Error:", res.body.data.metafieldsSet.userErrors);
+            return { status: 'error', message: res.body.data.metafieldsSet.userErrors[0].message };
+        }
+
+        console.log("Library SEO Metafield Updated Successfully.");
+        return { status: 'success' };
+    } catch (err) {
+        console.error("Library SEO Task Failed:", err.message);
+        return { status: 'error', message: err.message };
+    }
+}
+
 // --- MAIN HANDLER ---
 module.exports = async (req, res) => {
     const authHeader = req.headers.authorization;
