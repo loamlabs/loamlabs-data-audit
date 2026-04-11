@@ -167,8 +167,6 @@ async function updateLibrarySEO() {
         });
         
         const data = await response.json();
-        console.log("API Keys Received:", Object.keys(data));
-
         if (!data || !data.rims || !data.hubs) {
             throw new Error("API returned invalid data structure");
         }
@@ -176,7 +174,7 @@ async function updateLibrarySEO() {
         let html = '<div class="ll-seo-static-library">';
         const cleanValue = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
         
-        // Rims
+        // Rims Section
         html += '<h2>Professional Bicycle Rim Specifications & ERD Database</h2>';
         const rimsByTitle = data.rims.reduce((acc, item) => {
             if (item && item.Title) {
@@ -205,7 +203,7 @@ async function updateLibrarySEO() {
             html += '</table>';
         }
 
-        // Hubs
+        // Hubs Section
         html += '<h2>High Performance Bicycle Hub Technical Dimensions</h2>';
         const hubsByTitle = data.hubs.reduce((acc, item) => {
             if (item && item.Title) {
@@ -216,53 +214,14 @@ async function updateLibrarySEO() {
         }, {});
 
         for (const title in hubsByTitle) {
-            const rep = hubsByTitle[title][0];
-            const counts = [...new Set(hubsByTitle[title].map(v => v['Option1 Value']))].sort().join(', ');
-            html += '<h3>' + (rep.Vendor || '') + ' ' + title + '</h3><ul>';
+            const variants = hubsByTitle[title];
+            const rep = variants[0];
+            const pos = cleanValue(rep['Variant Metafield: custom.wheel_spec_position [single_line_text_field]']) || '';
+            const counts = [...new Set(variants.map(v => v['Option1 Value']))].sort().join(', ');
+            
+            html += '<h3>' + (rep.Vendor || '') + ' ' + title + ' (' + pos + ')</h3><ul>';
             html += '<li>Hub Type: ' + (cleanValue(rep['Metafield: custom.hub_type [single_line_text_field]']) || 'Standard') + '</li>';
-            html += '<li>Available Holes: ' + counts + '</li></ul>';
-        }
-
-        html += '</div>';
-
-        // UPDATED MUTATION FOR SHOPIFY 2024 STANDARDS
-        const client = new shopify.clients.Graphql({ session: getSession() });
-        const pageId = "gid://shopify/Page/105432123456";
-
-        const mutation = `
-            mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
-              metafieldsSet(metafields: $metafields) {
-                metafields { id }
-                userErrors { field message }
-              }
-            }
-        `;
-
-        const vars = {
-            metafields: [{
-                ownerId: pageId,
-                namespace: "custom",
-                key: "seo_library_content",
-                value: html,
-                type: "multi_line_text_field"
-            }]
-        };
-        
-        const res = await client.query({ data: { query: mutation, variables: vars } });
-        
-        if (res.body.data.metafieldsSet.userErrors.length > 0) {
-            console.error("Shopify Metafield Error:", res.body.data.metafieldsSet.userErrors);
-            return { status: 'error', message: res.body.data.metafieldsSet.userErrors[0].message };
-        }
-
-        console.log("Library SEO Metafield Updated Successfully.");
-        return { status: 'success' };
-    } catch (err) {
-        console.error("Library SEO Task Failed:", err.message);
-        return { status: 'error', message: err.message };
-    }
-}
-
+            html += '<li>Availa
 // --- MAIN HANDLER ---
 module.exports = async (req, res) => {
     const authHeader = req.headers.authorization;
