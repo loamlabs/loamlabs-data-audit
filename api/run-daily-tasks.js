@@ -162,27 +162,21 @@ async function triggerVendorWatcher() {
 async function updateLibrarySEO() {
     console.log("Running Task: Update Library SEO Metafield...");
     try {
-        // We must include the Referer header to bypass the security check mentioned in Section 5.1
         const response = await fetch('https://loamlabs-component-api.vercel.app/api/get-components', {
-            headers: {
-                'Referer': 'https://loamlabsusa.com/'
-            }
+            headers: { 'Referer': 'https://loamlabsusa.com/' }
         });
         
         const data = await response.json();
-
-        // Debug: Log the keys we received to verify connectivity
         console.log("API Keys Received:", Object.keys(data));
 
         if (!data || !data.rims || !data.hubs) {
-            console.error("API Response Data:", JSON.stringify(data).substring(0, 200));
-            throw new Error("API returned invalid data structure (Check Referer whitelist)");
+            throw new Error("API returned invalid data structure");
         }
 
         let html = '<div class="ll-seo-static-library">';
         const cleanValue = (val) => (val === null || val === undefined || val === "" || val === "-" || val === "null") ? null : val;
         
-        // Rims Section
+        // Rims
         html += '<h2>Professional Bicycle Rim Specifications & ERD Database</h2>';
         const rimsByTitle = data.rims.reduce((acc, item) => {
             if (item && item.Title) {
@@ -211,7 +205,7 @@ async function updateLibrarySEO() {
             html += '</table>';
         }
 
-        // Hubs Section
+        // Hubs
         html += '<h2>High Performance Bicycle Hub Technical Dimensions</h2>';
         const hubsByTitle = data.hubs.reduce((acc, item) => {
             if (item && item.Title) {
@@ -231,13 +225,37 @@ async function updateLibrarySEO() {
 
         html += '</div>';
 
+        // UPDATED MUTATION FOR SHOPIFY 2024 STANDARDS
         const client = new shopify.clients.Graphql({ session: getSession() });
         const pageId = "gid://shopify/Page/105432123456";
-        const mutation = `mutation metafieldUpsert($metafields: [MetafieldUpsertInput!]!) { metafieldsUpsert(metafields: $metafields) { metafields { id } userErrors { field message } } }`;
-        const vars = { metafields: [{ ownerId: pageId, namespace: "custom", key: "seo_library_content", value: html, type: "multi_line_text_field" }] };
+
+        const mutation = `
+            mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+              metafieldsSet(metafields: $metafields) {
+                metafields { id }
+                userErrors { field message }
+              }
+            }
+        `;
+
+        const vars = {
+            metafields: [{
+                ownerId: pageId,
+                namespace: "custom",
+                key: "seo_library_content",
+                value: html,
+                type: "multi_line_text_field"
+            }]
+        };
         
-        await client.query({ data: { query: mutation, variables: vars } });
-        console.log("Library SEO Metafield Updated.");
+        const res = await client.query({ data: { query: mutation, variables: vars } });
+        
+        if (res.body.data.metafieldsSet.userErrors.length > 0) {
+            console.error("Shopify Metafield Error:", res.body.data.metafieldsSet.userErrors);
+            return { status: 'error', message: res.body.data.metafieldsSet.userErrors[0].message };
+        }
+
+        console.log("Library SEO Metafield Updated Successfully.");
         return { status: 'success' };
     } catch (err) {
         console.error("Library SEO Task Failed:", err.message);
