@@ -76,25 +76,24 @@ async function runDataAudit() {
         allProducts.push(...pageData.edges.map(edge => edge.node));
         hasNextPage = pageData.pageInfo.hasNextPage; cursor = pageData.pageInfo.endCursor;
     } while (hasNextPage);
+    
     let errors = { unpublished: [], missingData: [] };
+    
     for (const product of allProducts) {
         if (product.tags.includes('audit:exclude')) continue;
+        
         const isPublished = product.status === 'ACTIVE' && product.onlineStoreUrl;
         if (!isPublished) { errors.unpublished.push(`- **${product.title}**: Status is \`${product.status}\``); continue; }
+        
         const productMetafields = Object.fromEntries(product.metafields.edges.map(e => [e.node.key, e.node.value]));
         const productErrors = [];
-        const hasProductWeight = !!productMetafields.weight_g;
-        let allVariantsHaveWeight = product.variants.edges.length > 0;
-        for (const { node: variant } of product.variants.edges) {
-            const variantMetafields = Object.fromEntries(variant.metafields.edges.map(e => [e.node.key, e.node.value]));
-            if (!variantMetafields.weight_g) { allVariantsHaveWeight = false; break; }
-        }
+        const pTitleLower = product.title.toLowerCase(); // Getting Main Product Title strictly
+
         // --- 1. THE UNIVERSAL WEIGHT RULE ---
         const hasProductWeight = !!productMetafields['weight_g'];
 
         product.variants.edges.forEach(({ node: v }) => {
             const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
-            const fullTitleText = `${product.title} ${v.title}`.toLowerCase();
             
             if (!hasProductWeight && !vM['weight_g']) {
                 productErrors.push(`Variant "${v.title}" missing: \`weight_g\` (No fallback found on Product level)`);
@@ -105,9 +104,9 @@ async function runDataAudit() {
                 if (!vM['wheel_spec_position']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_position\``);
                 if (!vM['wheel_spec_internal_width_mm']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_internal_width_mm\``);
                 
-                // Rim Brake Rule
-                if (fullTitleText.includes('rim brake')) {
-                    if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\` (Required because "Rim Brake" is in title)`);
+                // Rim Brake Rule (Main Product Title Only)
+                if (pTitleLower.includes('rim brake')) {
+                    if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\` (Required because "Rim Brake" is in Product Title)`);
                 }
             }
 
@@ -116,16 +115,16 @@ async function runDataAudit() {
                 if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\``);
                 if (!vM['wheel_spec_hub_spacing']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_hub_spacing\``);
 
-                // Position & Title Match Rule
+                // Position & Title Match Rule (Main Product Title Only)
                 const pos = vM['wheel_spec_position'];
                 if (!pos) {
                     productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_position\``);
                 } else {
-                    if (pos.toLowerCase().includes('front') && !fullTitleText.includes('front')) {
-                        productErrors.push(`Variant "${v.title}" mismatch: Position is "Front", but 'Front' is missing from the title.`);
+                    if (pos.toLowerCase().includes('front') && !pTitleLower.includes('front')) {
+                        productErrors.push(`Variant "${v.title}" mismatch: Position is "Front", but 'Front' is missing from the Product Title.`);
                     }
-                    if (pos.toLowerCase().includes('rear') && !fullTitleText.includes('rear')) {
-                        productErrors.push(`Variant "${v.title}" mismatch: Position is "Rear", but 'Rear' is missing from the title.`);
+                    if (pos.toLowerCase().includes('rear') && !pTitleLower.includes('rear')) {
+                        productErrors.push(`Variant "${v.title}" mismatch: Position is "Rear", but 'Rear' is missing from the Product Title.`);
                     }
                 }
 
@@ -157,7 +156,7 @@ async function runDataAudit() {
             reqHubProductFields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Field: \`${key}\``); });
 
             // Freehub Rule (Rear Hubs Only)
-            const isRearHub = product.title.toLowerCase().includes('rear') || product.tags.includes('position:rear');
+            const isRearHub = pTitleLower.includes('rear') || product.tags.includes('position:rear');
             if (isRearHub) {
                 if (!productMetafields['freehub']) productErrors.push(`Missing Product Field: \`freehub\` (Required for Rear Hubs)`);
                 if (!productMetafields['freehub_variant_map']) productErrors.push(`Missing Product Field: \`freehub_variant_map\` (Required for Rear Hubs)`);
@@ -167,7 +166,6 @@ async function runDataAudit() {
             const hubType = productMetafields['hub_type'];
             if (hubType === 'Straight Pull' || hubType === 'Hook Flange') {
                 if (!productMetafields['hub_lacing_policy']) {
-                    // Check if it exists on variants before failing
                     let foundOnVariant = false;
                     product.variants.edges.forEach(({ node: v }) => {
                         const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
@@ -192,6 +190,7 @@ async function runDataAudit() {
         // --- ERROR COMPILATION ---
         if (productErrors.length > 0) errors.missingData.push(`- **${product.title}**:<br><ul>${productErrors.map(e => `<li>${e}</li>`).join('')}</ul>`);
     }
+    
     const totalIssues = errors.unpublished.length + errors.missingData.length;
     if (totalIssues > 0) {
         let emailHtml = `<h1>Data Health Report (${totalIssues} issues)</h1>`;
