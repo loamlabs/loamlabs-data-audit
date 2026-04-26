@@ -192,6 +192,7 @@ async function runDataAudit() {
     }
     
     const totalIssues = errors.unpublished.length + errors.missingData.length;
+    console.log(`Data Audit complete. Found ${totalIssues} total issues.`); // <-- Add this line
     if (totalIssues > 0) {
         let emailHtml = `<h1>Data Health Report (${totalIssues} issues)</h1>`;
         if (errors.unpublished.length > 0) emailHtml += `<hr><h2>Unpublished (${errors.unpublished.length})</h2><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
