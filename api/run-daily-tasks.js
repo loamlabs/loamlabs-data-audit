@@ -87,7 +87,8 @@ async function runDataAudit() {
         
         const productMetafields = Object.fromEntries(product.metafields.edges.map(e => [e.node.key, e.node.value]));
         const productErrors = [];
-        const pTitleLower = product.title.toLowerCase(); // Getting Main Product Title strictly
+        const pTitleLower = product.title.toLowerCase(); 
+        const isReserveInfinity = pTitleLower.includes('reserve infinity disc turbulent aero');
 
         // --- 1. THE UNIVERSAL WEIGHT RULE ---
         const hasProductWeight = !!productMetafields['weight_g'];
@@ -102,7 +103,11 @@ async function runDataAudit() {
             // --- 2. COMPONENT: RIM (VARIANT CHECKS) ---
             if (product.tags.includes('component:rim')) {
                 if (!vM['wheel_spec_position']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_position\``);
-                if (!vM['wheel_spec_internal_width_mm']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_internal_width_mm\``);
+                
+                // Reserve Infinity Exception for Internal Width
+                if (!vM['wheel_spec_internal_width_mm'] && !isReserveInfinity) {
+                    productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_internal_width_mm\``);
+                }
                 
                 // Rim Brake Rule (Main Product Title Only)
                 if (pTitleLower.includes('rim brake')) {
@@ -146,8 +151,13 @@ async function runDataAudit() {
 
         // --- 4. COMPONENT: RIM (PRODUCT CHECKS) ---
         if (product.tags.includes('component:rim')) {
-            const reqRimProductFields = ['rim_depth_mm', 'rim_washer_policy', 'rim_spoke_hole_offset', 'nipple_washer_thickness', 'rim_target_tension_kgf'];
+            const reqRimProductFields = ['rim_washer_policy', 'rim_spoke_hole_offset', 'nipple_washer_thickness', 'rim_target_tension_kgf'];
             reqRimProductFields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Field: \`${key}\``); });
+            
+            // Reserve Infinity Exception for Rim Depth
+            if (!productMetafields['rim_depth_mm'] && !isReserveInfinity) {
+                productErrors.push(`Missing Product Field: \`rim_depth_mm\``);
+            }
         }
 
         // --- 5. COMPONENT: HUB (PRODUCT CHECKS) ---
@@ -178,8 +188,15 @@ async function runDataAudit() {
 
         // --- 6. COMPONENT: SPOKE (PRODUCT CHECKS) ---
         if (product.tags.includes('component:spoke')) {
-            const reqSpokeProductFields = ['spoke_hub_interface', 'spoke_diameter_spec', 'spoke_model_group', 'spoke_type', 'spoke_cross_section_area_mm2', 'inventory_monitoring_enabled', 'inventory_alert_threshold'];
+            const reqSpokeProductFields = ['spoke_hub_interface', 'spoke_diameter_spec', 'spoke_model_group', 'spoke_type', 'inventory_monitoring_enabled', 'inventory_alert_threshold'];
             reqSpokeProductFields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Field: \`${key}\``); });
+            
+            // Berd Exception for Cross Section Area
+            if (productMetafields['spoke_type'] !== 'Berd') {
+                if (!productMetafields['spoke_cross_section_area_mm2']) {
+                    productErrors.push(`Missing Product Field: \`spoke_cross_section_area_mm2\``);
+                }
+            }
         }
 
         // --- 7. COMPONENT: NIPPLE (PRODUCT CHECKS) ---
@@ -192,7 +209,8 @@ async function runDataAudit() {
     }
     
     const totalIssues = errors.unpublished.length + errors.missingData.length;
-    console.log(`Data Audit complete. Found ${totalIssues} total issues.`); // <-- Add this line
+    console.log(`Data Audit complete. Found ${totalIssues} total issues.`);
+    
     if (totalIssues > 0) {
         let emailHtml = `<h1>Data Health Report (${totalIssues} issues)</h1>`;
         if (errors.unpublished.length > 0) emailHtml += `<hr><h2>Unpublished (${errors.unpublished.length})</h2><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
