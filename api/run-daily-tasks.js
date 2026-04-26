@@ -67,7 +67,7 @@ async function sendAbandonedBuildReport() {
 // --- Task 2: Data Audit Logic ---
 async function runDataAudit() {
     console.log("Running Task: Data Audit...");
-    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 10, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 20, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
+    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 250, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:nipple'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 100) { edges { node { id title metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
     const client = new shopify.clients.Graphql({ session: getSession() });
     let allProducts = [], hasNextPage = true, cursor = null;
     do {
@@ -89,19 +89,107 @@ async function runDataAudit() {
             const variantMetafields = Object.fromEntries(variant.metafields.edges.map(e => [e.node.key, e.node.value]));
             if (!variantMetafields.weight_g) { allVariantsHaveWeight = false; break; }
         }
-        if (!hasProductWeight && !allVariantsHaveWeight) productErrors.push("Missing: `weight_g` at either Product or Variant level.");
+        // --- 1. THE UNIVERSAL WEIGHT RULE ---
+        const hasProductWeight = !!productMetafields['weight_g'];
+
+        product.variants.edges.forEach(({ node: v }) => {
+            const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
+            const fullTitleText = `${product.title} ${v.title}`.toLowerCase();
+            
+            if (!hasProductWeight && !vM['weight_g']) {
+                productErrors.push(`Variant "${v.title}" missing: \`weight_g\` (No fallback found on Product level)`);
+            }
+
+            // --- 2. COMPONENT: RIM (VARIANT CHECKS) ---
+            if (product.tags.includes('component:rim')) {
+                if (!vM['wheel_spec_position']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_position\``);
+                if (!vM['wheel_spec_internal_width_mm']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_internal_width_mm\``);
+                
+                // Rim Brake Rule
+                if (fullTitleText.includes('rim brake')) {
+                    if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\` (Required because "Rim Brake" is in title)`);
+                }
+            }
+
+            // --- 3. COMPONENT: HUB (VARIANT CHECKS) ---
+            if (product.tags.includes('component:hub')) {
+                if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\``);
+                if (!vM['wheel_spec_hub_spacing']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_hub_spacing\``);
+
+                // Position & Title Match Rule
+                const pos = vM['wheel_spec_position'];
+                if (!pos) {
+                    productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_position\``);
+                } else {
+                    if (pos.toLowerCase().includes('front') && !fullTitleText.includes('front')) {
+                        productErrors.push(`Variant "${v.title}" mismatch: Position is "Front", but 'Front' is missing from the title.`);
+                    }
+                    if (pos.toLowerCase().includes('rear') && !fullTitleText.includes('rear')) {
+                        productErrors.push(`Variant "${v.title}" mismatch: Position is "Rear", but 'Rear' is missing from the title.`);
+                    }
+                }
+
+                // Lacing Override Rule
+                const lacingPolicy = vM['hub_lacing_policy'] || productMetafields['hub_lacing_policy'];
+                if (lacingPolicy && lacingPolicy.includes('Use Manual Override Field')) {
+                    if (!vM['hub_manual_cross_value'] && !productMetafields['hub_manual_cross_value']) {
+                        productErrors.push(`Variant "${v.title}" missing: \`hub_manual_cross_value\` (Required by Lacing Policy)`);
+                    }
+                }
+
+                // Straight Pull Offset Rule
+                if (productMetafields['hub_type'] === 'Straight Pull') {
+                    if (!vM['hub_sp_offset_spoke_hole_left']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_left\``);
+                    if (!vM['hub_sp_offset_spoke_hole_right']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_right\``);
+                }
+            }
+        });
+
+        // --- 4. COMPONENT: RIM (PRODUCT CHECKS) ---
         if (product.tags.includes('component:rim')) {
-            const requiredRimMetafields = ['rim_washer_policy', 'rim_spoke_hole_offset', 'rim_target_tension_kgf'];
-            requiredRimMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
-            product.variants.edges.forEach(({ node: v }) => {
-                const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
-                if (!vM.rim_erd) productErrors.push(`Variant "${v.title}" missing: \`rim_erd\``);
-            });
+            const reqRimProductFields = ['rim_depth_mm', 'rim_washer_policy', 'rim_spoke_hole_offset', 'nipple_washer_thickness', 'rim_target_tension_kgf'];
+            reqRimProductFields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Field: \`${key}\``); });
         }
+
+        // --- 5. COMPONENT: HUB (PRODUCT CHECKS) ---
         if (product.tags.includes('component:hub')) {
-            const requiredHubMetafields = ['hub_type', 'hub_flange_diameter_left', 'hub_flange_diameter_right', 'hub_flange_offset_left', 'hub_flange_offset_right'];
-            requiredHubMetafields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Metafield: \`${key}\``); });
+            const reqHubProductFields = ['hub_type', 'hub_spoke_hole_diameter', 'hub_flange_offset_right', 'hub_flange_offset_left', 'hub_flange_diameter_right', 'hub_flange_diameter_left'];
+            reqHubProductFields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Field: \`${key}\``); });
+
+            // Freehub Rule (Rear Hubs Only)
+            const isRearHub = product.title.toLowerCase().includes('rear') || product.tags.includes('position:rear');
+            if (isRearHub) {
+                if (!productMetafields['freehub']) productErrors.push(`Missing Product Field: \`freehub\` (Required for Rear Hubs)`);
+                if (!productMetafields['freehub_variant_map']) productErrors.push(`Missing Product Field: \`freehub_variant_map\` (Required for Rear Hubs)`);
+            }
+
+            // Lacing Policy Rule (Straight Pull or Hook Flange)
+            const hubType = productMetafields['hub_type'];
+            if (hubType === 'Straight Pull' || hubType === 'Hook Flange') {
+                if (!productMetafields['hub_lacing_policy']) {
+                    // Check if it exists on variants before failing
+                    let foundOnVariant = false;
+                    product.variants.edges.forEach(({ node: v }) => {
+                        const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
+                        if (vM['hub_lacing_policy']) foundOnVariant = true;
+                    });
+                    if (!foundOnVariant) productErrors.push(`Missing Field: \`hub_lacing_policy\` (Required for ${hubType} hubs)`);
+                }
+            }
         }
+
+        // --- 6. COMPONENT: SPOKE (PRODUCT CHECKS) ---
+        if (product.tags.includes('component:spoke')) {
+            const reqSpokeProductFields = ['spoke_hub_interface', 'spoke_diameter_spec', 'spoke_model_group', 'spoke_type', 'spoke_cross_section_area_mm2', 'inventory_monitoring_enabled', 'inventory_alert_threshold'];
+            reqSpokeProductFields.forEach(key => { if (!productMetafields[key]) productErrors.push(`Missing Product Field: \`${key}\``); });
+        }
+
+        // --- 7. COMPONENT: NIPPLE (PRODUCT CHECKS) ---
+        if (product.tags.includes('component:nipple')) {
+            if (!productMetafields['rim_compatible_nipple_types']) productErrors.push(`Missing Product Field: \`rim_compatible_nipple_types\``);
+        }
+
+        // --- ERROR COMPILATION ---
         if (productErrors.length > 0) errors.missingData.push(`- **${product.title}**:<br><ul>${productErrors.map(e => `<li>${e}</li>`).join('')}</ul>`);
     }
     const totalIssues = errors.unpublished.length + errors.missingData.length;
