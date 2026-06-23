@@ -90,28 +90,37 @@ async function runDataAudit() {
         const pTitleLower = product.title.toLowerCase(); 
         const isReserveInfinity = pTitleLower.includes('reserve infinity disc turbulent aero');
 
-        // --- 1. THE UNIVERSAL WEIGHT RULE ---
+        // --- 1. THE UNIVERSAL FALLBACK DEFINITIONS ---
         const hasProductWeight = !!productMetafields['weight_g'];
+        const hasProductERD = !!productMetafields['rim_erd'];
 
         product.variants.edges.forEach(({ node: v }) => {
             const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
             
+            // Weight Check (Applies to all components)
             if (!hasProductWeight && !vM['weight_g']) {
                 productErrors.push(`Variant "${v.title}" missing: \`weight_g\` (No fallback found on Product level)`);
             }
 
             // --- 2. COMPONENT: RIM (VARIANT CHECKS) ---
             if (product.tags.includes('component:rim')) {
+                // Identity Specs
+                if (!vM['wheel_spec_rim_size']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_rim_size\``);
                 if (!vM['wheel_spec_position']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_position\``);
                 
+                // ERD Calculation Spec (Checks Variant, falls back to Product)
+                if (!hasProductERD && !vM['rim_erd'] && !isReserveInfinity) {
+                    productErrors.push(`Variant "${v.title}" missing: \`rim_erd\` (No fallback found on Product level)`);
+                }
+
                 // Reserve Infinity Exception for Internal Width
                 if (!vM['wheel_spec_internal_width_mm'] && !isReserveInfinity) {
                     productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_internal_width_mm\``);
                 }
                 
-                // Rim Brake Rule (Main Product Title Only)
-                if (pTitleLower.includes('rim brake')) {
-                    if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\` (Required because "Rim Brake" is in Product Title)`);
+                // Rim Brake Rule
+                if (pTitleLower.includes('rim brake') && !vM['wheel_spec_brake_interface']) {
+                    productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\` (Required because "Rim Brake" is in Product Title)`);
                 }
             }
 
@@ -120,7 +129,7 @@ async function runDataAudit() {
                 if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\``);
                 if (!vM['wheel_spec_hub_spacing']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_hub_spacing\``);
 
-                // Position & Title Match Rule (Main Product Title Only)
+                // Position & Title Match Rule
                 const pos = vM['wheel_spec_position'];
                 if (!pos) {
                     productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_position\``);
