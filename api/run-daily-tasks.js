@@ -119,7 +119,6 @@ async function runDataAudit() {
             // --- 3. COMPONENT: HUB (VARIANT CHECKS) ---
             if (product.tags.includes('component:hub')) {
                 const hubType = productMetafields['hub_type'];
-                const isClassicOrHook = hubType === 'Classic Flange' || hubType === 'Hook Flange';
 
                 // Identity Specs
                 if (!vM['wheel_spec_brake_interface']) productErrors.push(`Variant "${v.title}" missing: \`wheel_spec_brake_interface\``);
@@ -157,42 +156,29 @@ async function runDataAudit() {
                     }
                 }
 
-                // Straight Pull / System Offset Rule (Checks Spoke Hole Offsets)
+                // Straight Pull / System Offset Rule
                 if (['Straight Pull', 'System'].includes(hubType)) {
-                    if (!vM['hub_sp_offset_spoke_hole_left']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_left\` (Required for ${hubType} hubs)`);
-                    if (!vM['hub_sp_offset_spoke_hole_right']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_right\` (Required for ${hubType} hubs)`);
+                    if (!vM['hub_sp_offset_spoke_hole_left']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_left\``);
+                    if (!vM['hub_sp_offset_spoke_hole_right']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_right\``);
                 }
 
-                // Lacing Override Rule (ONLY for Classic/Hook Hubs)
-                if (isClassicOrHook) {
-                    const lacingPolicy = getMetafield(vM, 'hub_lacing_policy');
-                    if (lacingPolicy && lacingPolicy.includes('Use Manual Override Field')) {
-                        if (!getMetafield(vM, 'hub_manual_cross_value')) {
-                            productErrors.push(`Variant "${v.title}" missing: \`hub_manual_cross_value\` (Required for Manual Override on ${hubType} hubs)`);
-                        }
+                // Lacing Override Rule: Only check if "Use Manual Override Field" is actually selected
+                const lacingPolicy = getMetafield(vM, 'hub_lacing_policy');
+                if (lacingPolicy && lacingPolicy.includes('Use Manual Override Field')) {
+                    if (!getMetafield(vM, 'hub_manual_cross_value')) {
+                        productErrors.push(`Variant "${v.title}" missing: \`hub_manual_cross_value\` (Required because Manual Override is selected)`);
                     }
                 }
             }
-        });
+        }); 
       
         // --- 4. COMPONENT: HUB (PRODUCT LEVEL CHECKS ONLY) ---
         if (product.tags.includes('component:hub')) {
             const hubType = productMetafields['hub_type'];
             
+            // hub_type is essential for the script to function
             if (!hubType) {
-                productErrors.push(`Missing Product Field: \`hub_type\` (Essential for dimension rules)`);
-            }
-
-            // Lacing Policy is only mandatory for Classic/Hook hubs
-            if (hubType === 'Classic Flange' || hubType === 'Hook Flange') {
-                let foundLacing = !!productMetafields['hub_lacing_policy'];
-                if (!foundLacing) {
-                    product.variants.edges.forEach(({ node: v }) => {
-                        const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
-                        if (vM['hub_lacing_policy']) foundLacing = true;
-                    });
-                }
-                if (!foundLacing) productErrors.push(`Missing Field: \`hub_lacing_policy\` (Required for ${hubType} hubs)`);
+                productErrors.push(`Missing Product Field: \`hub_type\``);
             }
         }
 
