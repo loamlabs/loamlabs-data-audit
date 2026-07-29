@@ -37,7 +37,13 @@ async function sendAbandonedBuildReport() {
         console.log("Report Task: No abandoned builds to report.");
         return { status: 'success', message: 'No builds to report.' };
     }
-    const buildsHtml = builds.map((build, index) => {
+
+    // Separate the builds into Curated (Quick Build) and Manual (Natural selection)
+    const curatedBuilds = builds.filter(b => b.quickBuildGenerated === true);
+    const manualBuilds = builds.filter(b => b.quickBuildGenerated !== true);
+
+    // Helper: Renders an individual build card
+    const renderBuildCard = (build, index, labelPrefix) => {
         let visitorHtml = '';
         if (build.visitor) {
             if (build.visitor.isLoggedIn) {
@@ -50,16 +56,75 @@ async function sendAbandonedBuildReport() {
         }
         const hasFrontComponents = build.components && build.components.front && build.components.front.length > 0;
         const hasRearComponents = build.components && build.components.rear && build.components.rear.length > 0;
+        const profileDetails = build.quickBuildGenerated ? `<span style="font-weight: normal; font-size: 0.8em; color: #555;"> (Profile: ${build.quickBuildMaterial} ${build.quickBuildGoal})</span>` : '';
+
         return `
             <div class="build-section">
-                <h3>Build #${index + 1} (ID: ${build.buildId})</h3>
+                <h3>${labelPrefix} #${index + 1} (ID: ${build.buildId})${profileDetails}</h3>
                 <p>Captured: ${new Date(build.capturedAt).toLocaleString()}</p>
-                <table class="data-table">${visitorHtml}<tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr><tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>${hasFrontComponents ? `<tr><td colspan="2" class="subheader">Front Wheel</td></tr>${renderWheelComponents(build.components.front)}` : ''}${hasRearComponents ? `<tr><td colspan="2" class="subheader">Rear Wheel</td></tr>${renderWheelComponents(build.components.rear)}` : ''}<tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr></table>
+                <table class="data-table">
+                    ${visitorHtml}
+                    <tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr>
+                    <tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>
+                    ${hasFrontComponents ? `<tr><td colspan="2" class="subheader">Front Wheel</td></tr>${renderWheelComponents(build.components.front)}` : ''}
+                    ${hasRearComponents ? `<tr><td colspan="2" class="subheader">Rear Wheel</td></tr>${renderWheelComponents(build.components.rear)}` : ''}
+                    <tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr>
+                </table>
             </div>
         `;
-    }).join('');
-    const emailHtml = `<!DOCTYPE html><html><head><style>body{font-family:sans-serif;color:#333}a{color:#007bff;text-decoration:none}.container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}.build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}.data-table{border-collapse:collapse;width:100%}.data-table td{padding:8px;border:1px solid #ddd}.data-table td:first-child{font-weight:bold;width:120px;}.component-label{font-weight:normal !important;padding-left:25px !important;}.component-name{font-weight:bold;}.subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}</style></head><body><div class="container"><h2>Daily Abandoned Build Report</h2><p>Found <strong>${builds.length}</strong> significant build(s) that were started but not added to the cart in the last 24 hours.</p>${buildsHtml}</div></body></html>`;
-    await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: [REPORT_EMAIL_TO], subject: `Abandoned Build Report: ${builds.length} build(s)`, html: emailHtml });
+    };
+
+    // Render both sections
+    const curatedHtml = curatedBuilds.map((build, index) => renderBuildCard(build, index, "Curated Build")).join('');
+    const manualHtml = manualBuilds.map((build, index) => renderBuildCard(build, index, "Manual Build")).join('');
+
+    // Combine into a beautiful, structured email
+    const emailHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body{font-family:sans-serif;color:#333}
+            a{color:#007bff;text-decoration:none}
+            .container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}
+            .build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}
+            .data-table{border-collapse:collapse;width:100%}
+            .data-table td{padding:8px;border:1px solid #ddd}
+            .data-table td:first-child{font-weight:bold;width:120px;}
+            .component-label{font-weight:normal !important;padding-left:25px !important;}
+            .component-name{font-weight:bold;}
+            .subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Daily Abandoned Build Report</h2>
+            <p>Found <strong>${builds.length}</strong> significant build(s) in the last 24 hours.</p>
+            
+            ${curatedBuilds.length > 0 ? `
+                <h2 style="color: #28a745; border-bottom: 2px solid #28a745; padding-bottom: 5px; margin-top: 30px; display: flex; align-items: center; gap: 8px;">
+                    ⚡ Curated Quick Builds (${curatedBuilds.length})
+                </h2>
+                ${curatedHtml}
+            ` : ''}
+            
+            ${manualBuilds.length > 0 ? `
+                <h2 style="color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-top: 30px; display: flex; align-items: center; gap: 8px;">
+                    🛠️ Manual Custom Builds (${manualBuilds.length})
+                </h2>
+                ${manualHtml}
+            ` : ''}
+        </div>
+    </body>
+    </html>`;
+
+    await resend.emails.send({ 
+        from: 'LoamLabs Audit <info@loamlabsusa.com>', 
+        to: [REPORT_EMAIL_TO], 
+        subject: `Abandoned Build Report: ${builds.length} build(s) (${curatedBuilds.length} Curated / ${manualBuilds.length} Manual)`, 
+        html: emailHtml 
+    });
+
     await redis.del('abandoned_builds');
     return { status: 'success', message: `Report sent for ${builds.length} builds.` };
 }
