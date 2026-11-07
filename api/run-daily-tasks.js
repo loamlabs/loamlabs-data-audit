@@ -327,6 +327,24 @@ async function triggerVendorWatcher() {
     }
 }
 
+// --- Task 4b: Project321 Vendor Watcher call (its own request: Project321 is read politely, 5 seconds between pages, so it runs separately and in parallel with task 4) ---
+async function triggerProject321Watcher() {
+    console.log("Running Task: Triggering Remote Vendor Watcher for Project321...");
+    try {
+        const response = await fetch('https://loamlabs-ops-dashboard.vercel.app/api/sync?vendor=Project321', {
+            method: 'GET',
+            headers: { 'x-loam-secret': CRON_SECRET }
+        });
+        const data = await response.json().catch(() => ({}));
+        console.log("Project321 Watcher Response:", response.status, data);
+        if (!response.ok) return { status: 'error', message: `Project321 Watcher answered ${response.status}` };
+        return { status: 'success', message: 'Project321 Watcher triggered successfully.' };
+    } catch (err) {
+        console.error("Project321 Watcher Trigger Failed:", err.message);
+        return { status: 'error', message: `Trigger failed: ${err.message}` };
+    }
+}
+
 // --- NEW Task 5: Library SEO Metafield Sync (SEO PROJECT) ---
 async function updateLibrarySEO() {
     console.log("Running Task: Update Library SEO Metafield...");
@@ -449,13 +467,14 @@ module.exports = async (req, res) => {
             runDataAudit(),
             runOversellAudit(),
             triggerVendorWatcher(),
+            triggerProject321Watcher(),   // runs in parallel with the main Watcher call, each in its own function on the dashboard
             updateLibrarySEO() // Added SEO Task here
         ]);
         
         console.log("All daily tasks finished.", results);
         
         results.forEach((result, index) => { 
-            const taskNames = ['Abandoned Report', 'Data Audit', 'Oversell Audit', 'Vendor Watcher Trigger', 'Library SEO'];
+            const taskNames = ['Abandoned Report', 'Data Audit', 'Oversell Audit', 'Vendor Watcher Trigger', 'Project321 Watcher Trigger', 'Library SEO'];
             if (result.status === 'rejected') {
                 console.error(`Task "${taskNames[index]}" failed:`, result.reason); 
             }
