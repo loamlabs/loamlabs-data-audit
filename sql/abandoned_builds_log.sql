@@ -24,10 +24,13 @@ create table if not exists public.abandoned_builds_log (
   lead_time_label  text,
   purchased_order  text,
   purchased_at     timestamptz,
+  is_test          boolean     not null default false,   -- an agent's test build that was flagged (kept out of the email); count real customers with is_test = false
+  test_reason      text,
   unique (build_id, parts_fingerprint)
 );
 
 create index if not exists abandoned_builds_log_last_seen_idx on public.abandoned_builds_log (last_seen desc);
+create index if not exists abandoned_builds_log_real_idx on public.abandoned_builds_log (last_seen desc) where is_test = false;
 create index if not exists abandoned_builds_log_build_idx on public.abandoned_builds_log (build_id);
 
 -- only the service role (server side) reads or writes it
@@ -36,7 +39,7 @@ alter table public.abandoned_builds_log enable row level security;
 create or replace function public.log_abandoned_build(
   p_build_id text, p_parts_fingerprint text, p_captured_at timestamptz, p_source text, p_build_type text, p_riding_style text,
   p_curated boolean, p_quick_goal text, p_quick_material text, p_subtotal_cents integer, p_visitor_kind text, p_visitor_key text,
-  p_device text, p_components jsonb
+  p_device text, p_components jsonb, p_is_test boolean default false, p_test_reason text default null
 ) returns void
 language sql
 security definer
@@ -44,16 +47,17 @@ set search_path = public
 as $$
   insert into public.abandoned_builds_log
     (build_id, parts_fingerprint, first_seen, last_seen, source, build_type, riding_style, curated, quick_goal, quick_material,
-     subtotal_cents, visitor_kind, visitor_key, device, components)
+     subtotal_cents, visitor_kind, visitor_key, device, components, is_test, test_reason)
   values
     (p_build_id, p_parts_fingerprint, coalesce(p_captured_at, now()), coalesce(p_captured_at, now()), p_source, p_build_type, p_riding_style,
-     coalesce(p_curated, false), p_quick_goal, p_quick_material, p_subtotal_cents, p_visitor_kind, p_visitor_key, p_device, coalesce(p_components, '{}'::jsonb))
+     coalesce(p_curated, false), p_quick_goal, p_quick_material, p_subtotal_cents, p_visitor_kind, p_visitor_key, p_device, coalesce(p_components, '{}'::jsonb), coalesce(p_is_test, false), p_test_reason)
   on conflict (build_id, parts_fingerprint) do update set
     last_seen      = greatest(public.abandoned_builds_log.last_seen, excluded.last_seen),
     times_seen     = public.abandoned_builds_log.times_seen + 1,
     subtotal_cents = coalesce(excluded.subtotal_cents, public.abandoned_builds_log.subtotal_cents),
-    device         = coalesce(excluded.device, public.abandoned_builds_log.device);
+    device         = coalesce(excluded.device, public.abandoned_builds_log.device),
+    is_test        = public.abandoned_builds_log.is_test and excluded.is_test;   -- once seen as a real visitor, it stays real
 $$;
 
-revoke all on function public.log_abandoned_build(text, text, timestamptz, text, text, text, boolean, text, text, integer, text, text, text, jsonb) from public, anon, authenticated;
-grant execute on function public.log_abandoned_build(text, text, timestamptz, text, text, text, boolean, text, text, integer, text, text, text, jsonb) to service_role;
+revoke all on function public.log_abandoned_build(text, text, timestamptz, text, text, text, boolean, text, text, integer, text, text, text, jsonb, boolean, text) from public, anon, authenticated;
+grant execute on function public.log_abandoned_build(text, text, timestamptz, text, text, text, boolean, text, text, integer, text, text, text, jsonb, boolean, text) to service_role;

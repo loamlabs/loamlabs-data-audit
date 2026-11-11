@@ -1,7 +1,7 @@
 // Run with: npm test  (no network: fake Redis and fake Supabase)
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { deviceFromUserAgent, visitorKey, partsFingerprint, buildRow, saveRow } = require('../lib/abandoned-log');
+const { deviceFromUserAgent, visitorKey, partsFingerprint, buildRow, saveRow, classifyTest } = require('../lib/abandoned-log');
 const { createHandler } = require('../api/log-abandoned-build');
 
 // the shape the builder really sends (variant-builder.js getMinimalBuildStateForReporting + getVisitorIdentifier)
@@ -80,4 +80,53 @@ test('collector: unchanged behaviour for OPTIONS, wrong method and a Redis failu
   let res = fakeRes(); await h({ method: 'OPTIONS', headers: {} }, res); assert.equal(res.code, 204);
   res = fakeRes(); await h({ method: 'GET', headers: {} }, res); assert.equal(res.code, 405);
   res = fakeRes(); await h(fakeReq(JSON.stringify(packet())), res); assert.equal(res.code, 202); assert.equal(res.body.message, 'Error handled');
+});
+
+const anon = (id) => ({ isLoggedIn: false, anonymousId: id });
+const live = { origin: 'https://loamlabsusa.com' };
+
+test('classifyTest: a normal visitor from the live shop is real', () => {
+  assert.deepEqual(classifyTest(packet({ visitor: anon('9f1c-real') }), live), { isTest: false, drop: false, reason: null });
+  assert.equal(classifyTest(packet({ visitor: anon('x') }), { origin: 'https://www.loamlabsusa.com' }).isTest, false);
+  assert.equal(classifyTest(packet({ visitor: anon('x') }), {}).isTest, false);          // older beacon without an origin: treated as real
+});
+
+test('classifyTest: the TEST- marker is dropped, in any case, and testBuild:true too', () => {
+  for (const id of ['TEST-agent-b', 'test_agent-c', 'Test-backend2']) assert.deepEqual([classifyTest(packet({ visitor: anon(id) }), live).isTest, classifyTest(packet({ visitor: anon(id) }), live).drop], [true, true]);
+  assert.equal(classifyTest(packet({ visitor: anon('x'), testBuild: true }), live).drop, true);
+  assert.equal(classifyTest(packet({ visitor: anon('contest-winner') }), live).isTest, false);   // only a PREFIX counts
+});
+
+test('classifyTest: other theme role or other website is a test that is flagged (kept in Supabase, not emailed)', () => {
+  const r1 = classifyTest(packet({ visitor: anon('x'), themeRole: 'unpublished' }), live); assert.deepEqual([r1.isTest, r1.drop], [true, false]); assert.match(r1.reason, /theme_role:unpublished/);
+  assert.equal(classifyTest(packet({ visitor: anon('x'), themeRole: 'main' }), live).isTest, false);
+  const r2 = classifyTest(packet({ visitor: anon('x') }), { origin: 'https://e6f6c8-2.myshopify.com' }); assert.deepEqual([r2.isTest, r2.drop], [true, false]); assert.match(r2.reason, /origin:e6f6c8-2.myshopify.com/);
+  assert.equal(classifyTest(packet({ visitor: anon('x') }), { origin: 'https://staging.example.com' }, { liveHosts: ['staging.example.com'] }).isTest, false);   // override list
+});
+
+test('buildRow carries the test flag and reason', () => {
+  const row = buildRow(packet(), {}, { isTest: true, testReason: 'origin:x' }); assert.equal(row.p_is_test, true); assert.equal(row.p_test_reason, 'origin:x');
+  assert.equal(buildRow(packet()).p_is_test, false);
+});
+
+test('collector: marker build is dropped completely (no Redis, no Supabase) and still answers 202', async () => {
+  const pushes = []; const sent = []; const redis = { lpush: async (...a) => { pushes.push(a); } };
+  const h = createHandler({ redis, env: { SUPABASE_URL: 'https://x', SUPABASE_SERVICE_ROLE_KEY: 'K' }, fetchFn: async (u, i) => { sent.push(i.body); return { ok: true }; } });
+  const res = fakeRes(); await h(fakeReq(JSON.stringify(packet({ visitor: anon('TEST-agent-b') }))), res);
+  assert.equal(res.code, 202); assert.equal(pushes.length, 0); assert.equal(sent.length, 0);
+});
+
+test('collector: a build from another website is NOT emailed (no Redis) but is saved flagged is_test', async () => {
+  const pushes = []; const sent = []; const redis = { lpush: async (...a) => { pushes.push(a); } };
+  const h = createHandler({ redis, env: { SUPABASE_URL: 'https://x', SUPABASE_SERVICE_ROLE_KEY: 'K' }, fetchFn: async (u, i) => { sent.push(JSON.parse(i.body)); return { ok: true }; } });
+  const req = fakeReq(JSON.stringify(packet({ visitor: anon('x') }))); req.headers.origin = 'https://e6f6c8-2.myshopify.com';
+  const res = fakeRes(); await h(req, res);
+  assert.equal(res.code, 202); assert.equal(pushes.length, 0); assert.equal(sent.length, 1); assert.equal(sent[0].p_is_test, true); assert.match(sent[0].p_test_reason, /^origin:/);
+});
+
+test('collector: a real visitor is exactly as before (Redis + saved with is_test false)', async () => {
+  const pushes = []; const sent = []; const redis = { lpush: async (...a) => { pushes.push(a); } };
+  const h = createHandler({ redis, env: { SUPABASE_URL: 'https://x', SUPABASE_SERVICE_ROLE_KEY: 'K' }, fetchFn: async (u, i) => { sent.push(JSON.parse(i.body)); return { ok: true }; } });
+  const res = fakeRes(); await h(fakeReq(JSON.stringify(packet({ visitor: anon('real-1') }))), res);
+  assert.equal(pushes.length, 1); assert.equal(sent[0].p_is_test, false);
 });

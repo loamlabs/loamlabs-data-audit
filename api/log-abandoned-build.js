@@ -1,5 +1,5 @@
 const { Redis } = require('@upstash/redis');
-const { buildRow, saveRow } = require('../lib/abandoned-log');
+const { buildRow, saveRow, classifyTest, DEFAULT_LIVE_HOSTS } = require('../lib/abandoned-log');
 
 async function readRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -41,14 +41,25 @@ function createHandler({ redis, fetchFn = fetch, env = process.env }) {
             source: 'abandonment_tracker'
         };
 
-        // Push to Redis (unchanged: the daily email still reads and empties this list)
-        await redis.lpush('abandoned_builds', JSON.stringify(dataToStore));
+        // Test builds (agents testing the builder) must not look like customers: see classifyTest in lib/abandoned-log.js
+        const liveHosts = env.ABANDONED_LIVE_HOSTS ? String(env.ABANDONED_LIVE_HOSTS).split(',').map((h) => h.trim()).filter(Boolean) : DEFAULT_LIVE_HOSTS;
+        const test = classifyTest(dataToStore, req.headers, { liveHosts });
+        if (test.drop) {
+          console.log(`Ignored test build (${test.reason}): ${buildData.buildId}`);
+          return res.status(202).json({ message: 'Accepted' });
+        }
 
-        console.log(`Successfully recorded abandoned build: ${buildData.buildId}`);
+        // Push to Redis (unchanged for real visitors: the daily email still reads and empties this list). Flagged test builds are not emailed.
+        if (!test.isTest) {
+          await redis.lpush('abandoned_builds', JSON.stringify(dataToStore));
+          console.log(`Successfully recorded abandoned build: ${buildData.buildId}`);
+        } else {
+          console.log(`Test build kept out of the email (${test.reason}): ${buildData.buildId}`);
+        }
 
         // Also keep a permanent copy in Supabase. Best effort: a problem here is logged and never changes the answer.
         try {
-          const row = buildRow(dataToStore, req.headers, { salt: env.ABANDONED_HASH_SALT || '' });
+          const row = buildRow(dataToStore, req.headers, { salt: env.ABANDONED_HASH_SALT || '', isTest: test.isTest, testReason: test.reason });
           const saved = await saveRow({ row, url: env.SUPABASE_URL, key: env.SUPABASE_SERVICE_ROLE_KEY, fetchFn });
           if (!saved.ok) console.warn('Abandoned build history not saved:', saved.reason);
         } catch (e) {
