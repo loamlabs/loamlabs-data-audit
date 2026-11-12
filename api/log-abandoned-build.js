@@ -1,5 +1,5 @@
 const { Redis } = require('@upstash/redis');
-const { buildRow, saveRow, classifyTest, DEFAULT_LIVE_HOSTS } = require('../lib/abandoned-log');
+const { buildRow, saveRow, classifyTest, readOrigin, DEFAULT_LIVE_HOSTS } = require('../lib/abandoned-log');
 
 async function readRawBody(req) {
   return new Promise((resolve, reject) => {
@@ -50,9 +50,13 @@ function createHandler({ redis, fetchFn = fetch, env = process.env }) {
         }
 
         // Push to Redis (unchanged for real visitors: the daily email still reads and empties this list). Flagged test builds are not emailed.
-        if (!test.isTest) {
+        // A build that went into the cart (origin.addedToCart, sent by the theme from Release 35) is saved with that flag but is not an abandonment: not emailed.
+        const cartBound = readOrigin(dataToStore).addedToCart;
+        if (!test.isTest && !cartBound) {
           await redis.lpush('abandoned_builds', JSON.stringify(dataToStore));
           console.log(`Successfully recorded abandoned build: ${buildData.buildId}`);
+        } else if (cartBound && !test.isTest) {
+          console.log(`Cart-bound build kept out of the email: ${buildData.buildId}`);
         } else {
           console.log(`Test build kept out of the email (${test.reason}): ${buildData.buildId}`);
         }

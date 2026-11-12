@@ -1,0 +1,25 @@
+{
+  "_note": "Parts fingerprints of known test builds (see partsFingerprint in abandoned-log.js). A fingerprint listed here is flagged as a test once 3 or more different visitors have it within the window. Add more here, or in the setting ABANDONED_TEST_FINGERPRINTS (comma separated).",
+  "fingerprints": [
+    {
+      "fingerprint": "057d31fec7dbbac8bf0f2443",
+      "label": "Agent B six real carts: Rear $387.00"
+    },
+    {
+      "fingerprint": "d4825a3b8a240b2459b6e698",
+      "label": "Agent B six real carts: Wheel set $1,405.80"
+    },
+    {
+      "fingerprint": "6b5971654c33c9bceb7bd65a",
+      "label": "Agent B six real carts: Wheel set $1,268.38 / Wheel set $1,483.48"
+    },
+    {
+      "fingerprint": "55630b3c017a8b06ba8f96f4",
+      "label": "Agent B six real carts: Wheel set $732.60"
+    },
+    {
+      "fingerprint": "d3dc8cc1d96ac33a4e1ed115",
+      "label": "Agent B six real carts: Front $626.00"
+    }
+  ]
+}

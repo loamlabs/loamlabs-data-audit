@@ -1,0 +1,1185 @@
+[
+ {
+  "id": 3,
+  "build_id": "553477",
+  "parts_fingerprint": "057d31fec7dbbac8bf0f2443",
+  "first_seen": "2026-11-11T14:05:22.819+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "f2672f3384fb046086b643c5e83b084f",
+  "device": "desktop",
+  "subtotal_cents": 38700,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": []
+  },
+  "curated": false
+ },
+ {
+  "id": 4,
+  "build_id": "122972",
+  "parts_fingerprint": "d4825a3b8a240b2459b6e698",
+  "first_seen": "2026-11-11T14:09:21.782+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "abeb1d4b14f97dfe9f79ea35f4e6e999",
+  "device": "desktop",
+  "subtotal_cents": 140580,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (27.5\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 5,
+  "build_id": "133866",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-11T14:13:20.79+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "cb17e6b33cdd9ff1017a3a2d1e4bd049",
+  "device": "desktop",
+  "subtotal_cents": 126838,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 6,
+  "build_id": "229204",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-11T14:17:22.752+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "31e870a15ae2b56b7696d3519bc91ff1",
+  "device": "desktop",
+  "subtotal_cents": 148348,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 7,
+  "build_id": "840658",
+  "parts_fingerprint": "55630b3c017a8b06ba8f96f4",
+  "first_seen": "2026-11-11T14:21:14.062+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "de49635f5b3e1447766baca81011b0fb",
+  "device": "desktop",
+  "subtotal_cents": 73260,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 8,
+  "build_id": "237614",
+  "parts_fingerprint": "d3dc8cc1d96ac33a4e1ed115",
+  "first_seen": "2026-11-11T15:21:36.757+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "6945fa6d34e60edc83c92d6430f84e9c",
+  "device": "desktop",
+  "subtotal_cents": 62600,
+  "is_test": false,
+  "components": {
+   "rear": [],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 9,
+  "build_id": "455380",
+  "parts_fingerprint": "057d31fec7dbbac8bf0f2443",
+  "first_seen": "2026-11-11T15:25:52.488+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "a3383674a52d19de1352e1b38ac2fe3a",
+  "device": "desktop",
+  "subtotal_cents": 38700,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": []
+  },
+  "curated": false
+ },
+ {
+  "id": 10,
+  "build_id": "494555",
+  "parts_fingerprint": "d4825a3b8a240b2459b6e698",
+  "first_seen": "2026-11-11T15:29:51.827+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "93fa1cf1d78d85bf7b8ec598c4aa2947",
+  "device": "desktop",
+  "subtotal_cents": 140580,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (27.5\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 11,
+  "build_id": "235381",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-11T15:33:50.18+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "904a0e7134435d2b5635f49fc8a934a3",
+  "device": "desktop",
+  "subtotal_cents": 126838,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 12,
+  "build_id": "891366",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-11T15:37:52.284+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "4b7e2f9eae5379f8b542a4513c9585f2",
+  "device": "desktop",
+  "subtotal_cents": 148348,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 13,
+  "build_id": "259865",
+  "parts_fingerprint": "55630b3c017a8b06ba8f96f4",
+  "first_seen": "2026-11-11T15:41:43.81+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "c8dc3c581c653fc7d0b709d685ef2407",
+  "device": "desktop",
+  "subtotal_cents": 73260,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 14,
+  "build_id": "943586",
+  "parts_fingerprint": "d3dc8cc1d96ac33a4e1ed115",
+  "first_seen": "2026-11-11T17:22:18.677+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "05f0b28bb74c8d86b45ee32925aff250",
+  "device": "desktop",
+  "subtotal_cents": 62600,
+  "is_test": false,
+  "components": {
+   "rear": [],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 15,
+  "build_id": "293808",
+  "parts_fingerprint": "057d31fec7dbbac8bf0f2443",
+  "first_seen": "2026-11-11T17:26:32.945+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "cf4edf781d7ae9bb25571030dd242fde",
+  "device": "desktop",
+  "subtotal_cents": 38700,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": []
+  },
+  "curated": false
+ },
+ {
+  "id": 16,
+  "build_id": "401656",
+  "parts_fingerprint": "d4825a3b8a240b2459b6e698",
+  "first_seen": "2026-11-11T17:30:31.149+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "a75f64421eb059e98c648c5f5a81ffb0",
+  "device": "desktop",
+  "subtotal_cents": 140580,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (27.5\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 17,
+  "build_id": "325168",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-11T17:34:28.795+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "30e0977e988b0660a04869eca14cf6ad",
+  "device": "desktop",
+  "subtotal_cents": 126838,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 18,
+  "build_id": "216551",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-11T17:38:30.058+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "de6a6a0e7ac4cb6cd35594193ba842a8",
+  "device": "desktop",
+  "subtotal_cents": 148348,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 19,
+  "build_id": "442645",
+  "parts_fingerprint": "55630b3c017a8b06ba8f96f4",
+  "first_seen": "2026-11-11T17:42:20.745+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "a65606c6bef350e35443154a10a3176f",
+  "device": "desktop",
+  "subtotal_cents": 73260,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 20,
+  "build_id": "954234",
+  "parts_fingerprint": "47d690c13f49042469c2adf4",
+  "first_seen": "2026-11-11T18:14:03.099+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "131c82236e687b9a43e7b76ee70e2b45",
+  "device": "tablet",
+  "subtotal_cents": 224924,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One WHISP Carbon Rim (XC) (29\" / 24h 2:1 / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Solix SYSTEM Rear Hub - Centerlock (24h / Red / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Gold)",
+     "type": "Spokes"
+    },
+    {
+     "name": "MucOff Tubeless Valve (Red / 44mm)",
+     "type": "Valve Stem"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One WHISP Carbon Rim (XC) (29\" / 24h 2:1 / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Solix SYSTEM Front Hub - Centerlock (24h / Red / 15x110 RS TC)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Gold)",
+     "type": "Spokes"
+    },
+    {
+     "name": "MucOff Tubeless Valve (Red / 44mm)",
+     "type": "Valve Stem"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 21,
+  "build_id": "824257",
+  "parts_fingerprint": "03248f7bd2a2bcb9471c3e4b",
+  "first_seen": "2026-11-11T18:19:51.067+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "131c82236e687b9a43e7b76ee70e2b45",
+  "device": "tablet",
+  "subtotal_cents": 215820,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One WHISP Carbon Rim (XC) (29\" / 24h 2:1 / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Solix SYSTEM Rear Hub - Centerlock (24h / Red / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Gold)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One WHISP Carbon Rim (XC) (29\" / 24h 2:1 / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Solix SYSTEM Front Hub - Centerlock (24h / Red / 15x110 RS TC)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Gold)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 22,
+  "build_id": "609477",
+  "parts_fingerprint": "03248f7bd2a2bcb9471c3e4b",
+  "first_seen": "2026-11-11T18:20:25.503+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "131c82236e687b9a43e7b76ee70e2b45",
+  "device": "tablet",
+  "subtotal_cents": 215820,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One WHISP Carbon Rim (XC) (29\" / 24h 2:1 / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Solix SYSTEM Rear Hub - Centerlock (24h / Red / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Gold)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One WHISP Carbon Rim (XC) (29\" / 24h 2:1 / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Solix SYSTEM Front Hub - Centerlock (24h / Red / 15x110 RS TC)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Gold)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 24,
+  "build_id": "910637",
+  "parts_fingerprint": "05addf3fd801c57aa9a0c9f9",
+  "first_seen": "2026-11-11T21:41:43.703+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "2af7a4c3b05ba354d05e0ef4ebb6b3a5",
+  "device": "desktop",
+  "subtotal_cents": 192097,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "DT Swiss XRC 310 Carbon Rim (29\" / 28h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "DT Swiss 350 Classic Flange Rear Hub - 6-Bolt - 12x148mm 2021+ (28h / Black)",
+     "type": "Hub"
+    },
+    {
+     "name": "Sapim Race Spokes- J-Bend (Black)",
+     "type": "Spokes"
+    },
+    {
+     "name": "Sapim Brass Nipples (Black)",
+     "type": "Nipples"
+    },
+    {
+     "name": "Reserve Fillmore Valve Stem (Black / 50mm)",
+     "type": "Valve Stem"
+    }
+   ],
+   "front": [
+    {
+     "name": "DT Swiss XRC 310 Carbon Rim (29\" / 28h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "DT Swiss 350 Classic Flange Front Hub - 6-Bolt - 15x110mm 2021+ (28h / Black)",
+     "type": "Hub"
+    },
+    {
+     "name": "Sapim Race Spokes- J-Bend (Black)",
+     "type": "Spokes"
+    },
+    {
+     "name": "Sapim Brass Nipples (Black)",
+     "type": "Nipples"
+    },
+    {
+     "name": "Reserve Fillmore Valve Stem (Black / 50mm)",
+     "type": "Valve Stem"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 25,
+  "build_id": "254458",
+  "parts_fingerprint": "d3dc8cc1d96ac33a4e1ed115",
+  "first_seen": "2026-11-12T03:34:19.082+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "a7be93f811382600daaf9a2d0ac4a429",
+  "device": "desktop",
+  "subtotal_cents": 62600,
+  "is_test": false,
+  "components": {
+   "rear": [],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 26,
+  "build_id": "124450",
+  "parts_fingerprint": "d3dc8cc1d96ac33a4e1ed115",
+  "first_seen": "2026-11-12T03:34:31.508+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "ef78d610a59e1e709fba4f5d6db061dc",
+  "device": "desktop",
+  "subtotal_cents": 62600,
+  "is_test": false,
+  "components": {
+   "rear": [],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 27,
+  "build_id": "349714",
+  "parts_fingerprint": "057d31fec7dbbac8bf0f2443",
+  "first_seen": "2026-11-12T04:11:02.327+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "0ebf8f5c2bb5b2dace921c616939275f",
+  "device": "desktop",
+  "subtotal_cents": 38700,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": []
+  },
+  "curated": false
+ },
+ {
+  "id": 28,
+  "build_id": "395462",
+  "parts_fingerprint": "d3dc8cc1d96ac33a4e1ed115",
+  "first_seen": "2026-11-12T04:15:35.205+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "cfa1e7243a2d88c7194404aa6aa81dcf",
+  "device": "desktop",
+  "subtotal_cents": 62600,
+  "is_test": false,
+  "components": {
+   "rear": [],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 29,
+  "build_id": "127821",
+  "parts_fingerprint": "d4825a3b8a240b2459b6e698",
+  "first_seen": "2026-11-12T04:19:39.833+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "ebb90c05f6e61bf8c98c997198617719",
+  "device": "desktop",
+  "subtotal_cents": 140580,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (27.5\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 30,
+  "build_id": "125717",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-12T04:23:43.929+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "ca583910d879d6cda598e9f8c1ab733d",
+  "device": "desktop",
+  "subtotal_cents": 126838,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 31,
+  "build_id": "897697",
+  "parts_fingerprint": "6b5971654c33c9bceb7bd65a",
+  "first_seen": "2026-11-12T04:27:50.382+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "318651037ccd93cff61c7b1d46700b50",
+  "device": "desktop",
+  "subtotal_cents": 148348,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Astral Serpentine Alloy Rim (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 32,
+  "build_id": "651327",
+  "parts_fingerprint": "55630b3c017a8b06ba8f96f4",
+  "first_seen": "2026-11-12T04:31:46.393+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "9caa4fb62ba262605b5e8e528588f1af",
+  "device": "desktop",
+  "subtotal_cents": 73260,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "We Are One TRIAD Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Rear Hub - 6-Bolt (32h / Black / 12x148mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ],
+   "front": [
+    {
+     "name": "We Are One FUSE Carbon Rim (Enduro) (29\" / 32h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "Industry Nine Hydra2 SYSTEM Front Hub - 6-Bolt (32h / Black / 15x110mm)",
+     "type": "Hub"
+    },
+    {
+     "name": "Industry Nine SYSTEM Spokes (Black)",
+     "type": "Spokes"
+    }
+   ]
+  },
+  "curated": false
+ },
+ {
+  "id": 33,
+  "build_id": "444538",
+  "parts_fingerprint": "b25ced26a7d48a365f463611",
+  "first_seen": "2026-11-12T10:30:43.804+00:00",
+  "visitor_kind": "anonymous",
+  "visitor_key": "a9eda42fbaf0adb55862394d260c73c0",
+  "device": "desktop",
+  "subtotal_cents": 209900,
+  "is_test": false,
+  "components": {
+   "rear": [
+    {
+     "name": "Reserve 53 GR 700c Carbon Rim (700c / 24h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "DT Swiss 240 EXP SP Rear Hub - Centerlock - 12x142mm (24h / Black)",
+     "type": "Hub"
+    },
+    {
+     "name": "Sapim CX-Ray Spokes - Straight Pull (Black)",
+     "type": "Spokes"
+    },
+    {
+     "name": "Sapim Brass Nipples (Black)",
+     "type": "Nipples"
+    },
+    {
+     "name": "Reserve Fillmore Valve Stem (Black / 90mm)",
+     "type": "Valve Stem"
+    }
+   ],
+   "front": [
+    {
+     "name": "Reserve 48 GR 700c Carbon Rim (700c / 24h / Black)",
+     "type": "Rim"
+    },
+    {
+     "name": "DT Swiss 240 SP Front Hub - Centerlock - 12x100mm (24h / Black)",
+     "type": "Hub"
+    },
+    {
+     "name": "Sapim CX-Ray Spokes - Straight Pull (Black)",
+     "type": "Spokes"
+    },
+    {
+     "name": "Sapim Brass Nipples (Black)",
+     "type": "Nipples"
+    },
+    {
+     "name": "Reserve Fillmore Valve Stem (Black / 70mm)",
+     "type": "Valve Stem"
+    }
+   ]
+  },
+  "curated": false
+ }
+]

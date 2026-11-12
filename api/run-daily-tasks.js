@@ -3,6 +3,9 @@ const { shopifyApi, LATEST_API_VERSION } = require('@shopify/shopify-api');
 require('@shopify/shopify-api/adapters/node');
 const { Resend } = require('resend');
 const { Redis } = require('@upstash/redis');
+const { renderReport: renderAbandonedReport } = require('../lib/abandoned-email');
+const abandonedFlags = require('../lib/abandoned-flags');
+const { partsFingerprint } = require('../lib/abandoned-log');
 
 // --- SHARED CONFIGURATION ---
 const {
@@ -20,16 +23,7 @@ const shopify = shopifyApi({
 function getSession() { return { id: 'data-audit-session', shop: SHOPIFY_STORE_DOMAIN, accessToken: SHOPIFY_ADMIN_API_TOKEN, state: 'not-used', isOnline: false }; }
 
 // --- Task 1: Abandoned Build Report Logic ---
-const renderWheelComponents = (wheelComponents) => {
-  if (!wheelComponents || wheelComponents.length === 0) return '';
-  return wheelComponents.map(component => `
-    <tr>
-      <td class="component-label">${component.type}</td>
-      <td class="component-name">${component.name}</td>
-    </tr>
-  `).join('');
-};
-
+// The email text lives in lib/abandoned-email.js, the "looks like a test" checks in lib/abandoned-flags.js (both unit tested).
 async function sendAbandonedBuildReport() {
     console.log("Running Task: Send Abandoned Build Report...");
     const builds = await redis.lrange('abandoned_builds', 0, -1);
@@ -38,95 +32,47 @@ async function sendAbandonedBuildReport() {
         return { status: 'success', message: 'No builds to report.' };
     }
 
-    // Separate the builds into Curated (Quick Build) and Manual (Natural selection)
-    const curatedBuilds = builds.filter(b => b.quickBuildGenerated === true);
-    const manualBuilds = builds.filter(b => b.quickBuildGenerated !== true);
-
-    // Helper: Renders an individual build card
-    const renderBuildCard = (build, index, labelPrefix) => {
-        let visitorHtml = '';
-        if (build.visitor) {
-            if (build.visitor.isLoggedIn) {
-                const customerUrl = `https://${SHOPIFY_STORE_DOMAIN}/admin/customers/${build.visitor.customerId}`;
-                const visitorName = `${build.visitor.firstName || ''} ${build.visitor.lastName || ''}`.trim();
-                visitorHtml = `<tr><td>User</td><td><strong><a href="${customerUrl}" target="_blank">${visitorName || 'Customer'}</a></strong><br><small>${build.visitor.email}</small></td></tr>`;
-            } else {
-                visitorHtml = `<tr><td>User</td><td>Anonymous Visitor<br><small>ID: ${build.visitor.anonymousId}</small></td></tr>`;
-            }
+    // Flag builds that look like tests (never dropped: they stay in the history with is_test = true and are counted in the email's Test line).
+    // One read of the last 24 hours from Supabase, then the update of the flagged rows. If Supabase cannot be read, the checks run on today's packets alone;
+    // if anything here fails, every build is simply listed as before.
+    let tests = [];
+    let shownBuilds = builds;
+    const repeats = new Map();
+    try {
+        const url = process.env.SUPABASE_URL, key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+        const got = await abandonedFlags.fetchRecentRows({ url, key, sinceIso: new Date(Date.now() - 24 * 3600 * 1000).toISOString() });
+        const rows = got.ok ? got.rows : builds.map(abandonedFlags.rowFromPacket);
+        if (!got.ok) console.warn('Abandoned report: history not read (' + got.reason + '); checking today\'s packets only.');
+        const { hard, soft } = abandonedFlags.detectTests(rows, { knownFingerprints: abandonedFlags.loadKnownFingerprints(process.env) });
+        if (got.ok && (hard.size || soft.size)) {
+            const w = await abandonedFlags.writeFlags({ url, key, rows, hard, soft });
+            console.log('Abandoned report: test flags written ' + w.written + ', failed ' + w.failed + '.');
         }
-        const hasFrontComponents = build.components && build.components.front && build.components.front.length > 0;
-        const hasRearComponents = build.components && build.components.rear && build.components.rear.length > 0;
-        const profileDetails = build.quickBuildGenerated ? `<span style="font-weight: normal; font-size: 0.8em; color: #555;"> (Profile: ${build.quickBuildMaterial} ${build.quickBuildGoal})</span>` : '';
+        const already = new Map(rows.filter((r) => r.is_test).map((r) => [abandonedFlags.rowKey(r), r.test_reason]));
+        shownBuilds = [];
+        for (const b of builds) {
+            const k = String(b.buildId || '').slice(0, 80) + '|' + partsFingerprint(b.components);
+            if (hard.has(k)) tests.push({ build: b, reason: hard.get(k) });
+            else if (already.has(k)) tests.push({ build: b, reason: already.get(k) });
+            else { shownBuilds.push(b); if (soft.has(k)) repeats.set(b.buildId, Number(String(soft.get(k)).split(':')[1]) || 0); }
+        }
+    } catch (e) {
+        console.warn('Abandoned report: test checks failed, listing every build.', e.message);
+        tests = []; shownBuilds = builds; repeats.clear();
+    }
 
-        return `
-            <div class="build-section">
-                <h3>${labelPrefix} #${index + 1} (ID: ${build.buildId})${profileDetails}</h3>
-                <p>Captured: ${new Date(build.capturedAt).toLocaleString()}</p>
-                <table class="data-table">
-                    ${visitorHtml}
-                    <tr><td>Type</td><td><strong>${build.buildType}</strong></td></tr>
-                    <tr><td>Style</td><td>${build.ridingStyleDisplay}</td></tr>
-                    ${hasFrontComponents ? `<tr><td colspan="2" class="subheader">Front Wheel</td></tr>${renderWheelComponents(build.components.front)}` : ''}
-                    ${hasRearComponents ? `<tr><td colspan="2" class="subheader">Rear Wheel</td></tr>${renderWheelComponents(build.components.rear)}` : ''}
-                    <tr><td>Subtotal</td><td><strong>${'$' + ((build.subtotal || 0) / 100).toFixed(2)}</strong></td></tr>
-                </table>
-            </div>
-        `;
-    };
-
-    // Render both sections
-    const curatedHtml = curatedBuilds.map((build, index) => renderBuildCard(build, index, "Curated Build")).join('');
-    const manualHtml = manualBuilds.map((build, index) => renderBuildCard(build, index, "Manual Build")).join('');
-
-    // Combine into a beautiful, structured email
-    const emailHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body{font-family:sans-serif;color:#333}
-            a{color:#007bff;text-decoration:none}
-            .container{max-width:600px;margin:auto;padding:20px;border:1px solid #ddd}
-            .build-section{margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #eee}
-            .data-table{border-collapse:collapse;width:100%}
-            .data-table td{padding:8px;border:1px solid #ddd}
-            .data-table td:first-child{font-weight:bold;width:120px;}
-            .component-label{font-weight:normal !important;padding-left:25px !important;}
-            .component-name{font-weight:bold;}
-            .subheader{background-color:#f7f7f7;text-align:center;font-weight:bold}
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h2>Daily Abandoned Build Report</h2>
-            <p>Found <strong>${builds.length}</strong> significant build(s) in the last 24 hours.</p>
-            
-            ${curatedBuilds.length > 0 ? `
-                <h2 style="color: #28a745; border-bottom: 2px solid #28a745; padding-bottom: 5px; margin-top: 30px; display: flex; align-items: center; gap: 8px;">
-                    ⚡ Curated Quick Builds (${curatedBuilds.length})
-                </h2>
-                ${curatedHtml}
-            ` : ''}
-            
-            ${manualBuilds.length > 0 ? `
-                <h2 style="color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-top: 30px; display: flex; align-items: center; gap: 8px;">
-                    🛠️ Manual Custom Builds (${manualBuilds.length})
-                </h2>
-                ${manualHtml}
-            ` : ''}
-        </div>
-    </body>
-    </html>`;
-
-    await resend.emails.send({ 
-        from: 'LoamLabs Audit <info@loamlabsusa.com>', 
-        to: [REPORT_EMAIL_TO], 
-        subject: `Abandoned Build Report: ${builds.length} build(s) (${curatedBuilds.length} Curated / ${manualBuilds.length} Manual)`, 
-        html: emailHtml 
-    });
+    const report = renderAbandonedReport({ builds: shownBuilds, tests, repeats, shopDomain: SHOPIFY_STORE_DOMAIN });
+    if (report) {
+        await resend.emails.send({
+            from: 'LoamLabs Audit <info@loamlabsusa.com>',
+            to: [REPORT_EMAIL_TO],
+            subject: report.subject,
+            html: report.html
+        });
+    }
 
     await redis.del('abandoned_builds');
-    return { status: 'success', message: `Report sent for ${builds.length} builds.` };
+    return { status: 'success', message: `Report sent for ${shownBuilds.length} builds (${tests.length} test not shown).` };
 }
 
 async function runDataAudit() {
