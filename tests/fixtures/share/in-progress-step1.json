@@ -1,0 +1,74 @@
+{
+ "step": 1,
+ "buildType": null,
+ "ridingStyle": "mountain",
+ "ridingStyleDisplay": "Mountain",
+ "spokeInterface": null,
+ "system": null,
+ "customerSupplied": {
+  "front": {
+   "rim": false,
+   "hub": false
+  },
+  "rear": {
+   "rim": false,
+   "hub": false
+  }
+ },
+ "ownParts": {
+  "front": {
+   "rim": null,
+   "hub": null
+  },
+  "rear": {
+   "rim": null,
+   "hub": null
+  }
+ },
+ "specs": {
+  "frontWheelSize": "29\"",
+  "rearWheelSize": "29\"",
+  "frontSpokeCount": "32",
+  "rearSpokeCount": "32",
+  "brakeStyle": "Disc",
+  "frontHubSpacing": "110x15",
+  "rearHubSpacing": "148x12",
+  "frontAxle": null
+ },
+ "components": {
+  "frontRim": null,
+  "frontHub": null,
+  "frontSpokes": null,
+  "frontNipples": null,
+  "frontValveStem": null,
+  "rearRim": null,
+  "rearHub": null,
+  "rearSpokes": null,
+  "rearNipples": null,
+  "rearValveStem": null
+ },
+ "selectedOptionalAddons": {
+  "frontRim": [
+   "gid://shopify/Product/9800000000001"
+  ],
+  "rearRim": [
+   "gid://shopify/Product/9800000000002"
+  ],
+  "rearHub": []
+ },
+ "buildId": "482913",
+ "_ui": {
+  "activeVendor": {
+   "frontRim": "Industry Nine",
+   "rearRim": "Industry Nine"
+  },
+  "valveStemExplicitlyRemoved": {
+   "front": false,
+   "rear": false
+  },
+  "step2AutoSelected": {
+   "frontRim": true,
+   "rearRim": true
+  }
+ }
+}

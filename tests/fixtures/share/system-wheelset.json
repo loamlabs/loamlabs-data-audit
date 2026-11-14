@@ -1,0 +1,1224 @@
+{
+ "step": 3,
+ "buildType": "Wheel Set",
+ "ridingStyle": "mountain",
+ "ridingStyleDisplay": "Mountain",
+ "spokeInterface": "system",
+ "system": {
+  "studio": {
+   "v": 1,
+   "hubColor": {
+    "front": "Candy Apple Red",
+    "rear": "Electric Blue Metallic"
+   },
+   "base": {
+    "front": {
+     "drive": "Candy Apple Red",
+     "rotor": "Electric Blue Metallic"
+    },
+    "rear": {
+     "drive": "Candy Apple Red",
+     "rotor": "Electric Blue Metallic"
+    }
+   },
+   "spokes": {
+    "front": {
+     "drive": [
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink"
+     ],
+     "rotor": [
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized"
+     ]
+    },
+    "rear": {
+     "drive": [
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green"
+     ],
+     "rotor": [
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal"
+     ]
+    }
+   },
+   "prev": {
+    "front": {
+     "drive": [
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green"
+     ],
+     "rotor": [
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal"
+     ]
+    },
+    "rear": {
+     "drive": [
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze"
+     ],
+     "rotor": [
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red"
+     ]
+    }
+   },
+   "nipples": {
+    "front": {
+     "drive": [
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze"
+     ],
+     "rotor": [
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red"
+     ]
+    },
+    "rear": {
+     "drive": [
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized"
+     ],
+     "rotor": [
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic"
+     ]
+    }
+   },
+   "nprev": {
+    "front": {
+     "drive": [
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized"
+     ],
+     "rotor": [
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic"
+     ]
+    },
+    "rear": {
+     "drive": [
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal"
+     ],
+     "rotor": [
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black",
+      "Polished Silver",
+      "Gloss Orange",
+      "Hot Pink",
+      "Lime Green",
+      "Purple Haze",
+      "Gold Anodized",
+      "Teal",
+      "Candy Apple Red",
+      "Electric Blue Metallic",
+      "Matte Black"
+     ]
+    }
+   },
+   "nbase": {
+    "front": {
+     "drive": "Polished Silver",
+     "rotor": "Gloss Orange"
+    },
+    "rear": {
+     "drive": "Polished Silver",
+     "rotor": "Gloss Orange"
+    }
+   },
+   "accent": "Electric Blue Metallic",
+   "naccent": "Matte Black"
+  },
+  "wheels": {
+   "front": {
+    "hubName": "Hydra2 Classic Straight Pull Long Name",
+    "hubColor": "Candy Apple Red",
+    "erd": 603.5,
+    "rimHoles": 32,
+    "drive": "right",
+    "rotor": "left",
+    "sideLabels": {
+     "drive": "Drive side",
+     "rotor": "Rotor side"
+    }
+   },
+   "rear": {
+    "hubName": "Hydra2 Classic Straight Pull Long Name",
+    "hubColor": "Candy Apple Red",
+    "erd": 603.5,
+    "rimHoles": 32,
+    "drive": "right",
+    "rotor": "left",
+    "sideLabels": {
+     "drive": "Drive side",
+     "rotor": "Rotor side"
+    }
+   }
+  },
+  "colors": {
+   "Candy Apple Red": "#3779b1",
+   "Electric Blue Metallic": "#6ef362",
+   "Matte Black": "#a66d13",
+   "Polished Silver": "#dde6c4",
+   "Gloss Orange": "#156075",
+   "Hot Pink": "#4cda26",
+   "Lime Green": "#8453d7",
+   "Purple Haze": "#bbcd88",
+   "Gold Anodized": "#f34739",
+   "Teal": "#2ac0ea"
+  }
+ },
+ "customerSupplied": {
+  "front": {
+   "rim": false,
+   "hub": false
+  },
+  "rear": {
+   "rim": false,
+   "hub": false
+  }
+ },
+ "ownParts": {
+  "front": {
+   "rim": null,
+   "hub": null
+  },
+  "rear": {
+   "rim": null,
+   "hub": null
+  }
+ },
+ "specs": {
+  "frontWheelSize": "29\"",
+  "rearWheelSize": "29\"",
+  "frontSpokeCount": "32",
+  "rearSpokeCount": "32",
+  "brakeStyle": "Disc",
+  "frontHubSpacing": "110x15",
+  "rearHubSpacing": "148x12",
+  "frontAxle": null
+ },
+ "components": {
+  "frontRim": {
+   "variantId": "gid://shopify/ProductVariant/51000000000000",
+   "productId": "gid://shopify/Product/9800000000000",
+   "productHandle": "a-long-product-handle-for-rim-0",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Rim",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 0",
+   "sku": "SKU-Rim-0-0001",
+   "price": 45900,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Rim_0.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Rim"
+   },
+   "pairingKey": "pair-key-Rim-0",
+   "tags": [
+    "tag-number-0-for-Rim",
+    "tag-number-1-for-Rim",
+    "tag-number-2-for-Rim",
+    "tag-number-3-for-Rim",
+    "tag-number-4-for-Rim",
+    "tag-number-5-for-Rim",
+    "tag-number-6-for-Rim",
+    "tag-number-7-for-Rim",
+    "tag-number-8-for-Rim",
+    "tag-number-9-for-Rim",
+    "tag-number-10-for-Rim",
+    "tag-number-11-for-Rim",
+    "tag-number-12-for-Rim",
+    "tag-number-13-for-Rim",
+    "tag-number-14-for-Rim",
+    "tag-number-15-for-Rim",
+    "tag-number-16-for-Rim",
+    "tag-number-17-for-Rim",
+    "tag-number-18-for-Rim",
+    "tag-number-19-for-Rim",
+    "tag-number-20-for-Rim",
+    "tag-number-21-for-Rim",
+    "tag-number-22-for-Rim",
+    "tag-number-23-for-Rim",
+    "tag-number-24-for-Rim",
+    "tag-number-25-for-Rim",
+    "tag-number-26-for-Rim",
+    "tag-number-27-for-Rim",
+    "tag-number-28-for-Rim",
+    "tag-number-29-for-Rim"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 0",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "frontHub": {
+   "variantId": "gid://shopify/ProductVariant/51000000007919",
+   "productId": "gid://shopify/Product/9800000104729",
+   "productHandle": "a-long-product-handle-for-hub-1",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Hub",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 1",
+   "sku": "SKU-Hub-1-0001",
+   "price": 45901,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Hub_1.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Hub"
+   },
+   "pairingKey": "pair-key-Hub-1",
+   "tags": [
+    "tag-number-0-for-Hub",
+    "tag-number-1-for-Hub",
+    "tag-number-2-for-Hub",
+    "tag-number-3-for-Hub",
+    "tag-number-4-for-Hub",
+    "tag-number-5-for-Hub",
+    "tag-number-6-for-Hub",
+    "tag-number-7-for-Hub",
+    "tag-number-8-for-Hub",
+    "tag-number-9-for-Hub",
+    "tag-number-10-for-Hub",
+    "tag-number-11-for-Hub",
+    "tag-number-12-for-Hub",
+    "tag-number-13-for-Hub",
+    "tag-number-14-for-Hub",
+    "tag-number-15-for-Hub",
+    "tag-number-16-for-Hub",
+    "tag-number-17-for-Hub",
+    "tag-number-18-for-Hub",
+    "tag-number-19-for-Hub",
+    "tag-number-20-for-Hub",
+    "tag-number-21-for-Hub",
+    "tag-number-22-for-Hub",
+    "tag-number-23-for-Hub",
+    "tag-number-24-for-Hub",
+    "tag-number-25-for-Hub",
+    "tag-number-26-for-Hub",
+    "tag-number-27-for-Hub",
+    "tag-number-28-for-Hub",
+    "tag-number-29-for-Hub"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 1",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "frontSpokes": {
+   "variantId": "gid://shopify/ProductVariant/51000000015838",
+   "productId": "gid://shopify/Product/9800000209458",
+   "productHandle": "a-long-product-handle-for-spokes-2",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Spokes",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 2",
+   "sku": "SKU-Spokes-2-0001",
+   "price": 45902,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Spokes_2.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Spokes"
+   },
+   "pairingKey": "pair-key-Spokes-2",
+   "tags": [
+    "tag-number-0-for-Spokes",
+    "tag-number-1-for-Spokes",
+    "tag-number-2-for-Spokes",
+    "tag-number-3-for-Spokes",
+    "tag-number-4-for-Spokes",
+    "tag-number-5-for-Spokes",
+    "tag-number-6-for-Spokes",
+    "tag-number-7-for-Spokes",
+    "tag-number-8-for-Spokes",
+    "tag-number-9-for-Spokes",
+    "tag-number-10-for-Spokes",
+    "tag-number-11-for-Spokes",
+    "tag-number-12-for-Spokes",
+    "tag-number-13-for-Spokes",
+    "tag-number-14-for-Spokes",
+    "tag-number-15-for-Spokes",
+    "tag-number-16-for-Spokes",
+    "tag-number-17-for-Spokes",
+    "tag-number-18-for-Spokes",
+    "tag-number-19-for-Spokes",
+    "tag-number-20-for-Spokes",
+    "tag-number-21-for-Spokes",
+    "tag-number-22-for-Spokes",
+    "tag-number-23-for-Spokes",
+    "tag-number-24-for-Spokes",
+    "tag-number-25-for-Spokes",
+    "tag-number-26-for-Spokes",
+    "tag-number-27-for-Spokes",
+    "tag-number-28-for-Spokes",
+    "tag-number-29-for-Spokes"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 2",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "frontNipples": {
+   "variantId": "gid://shopify/ProductVariant/51000000023757",
+   "productId": "gid://shopify/Product/9800000314187",
+   "productHandle": "a-long-product-handle-for-nipples-3",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Nipples",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 3",
+   "sku": "SKU-Nipples-3-0001",
+   "price": 45903,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Nipples_3.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Nipples"
+   },
+   "pairingKey": "pair-key-Nipples-3",
+   "tags": [
+    "tag-number-0-for-Nipples",
+    "tag-number-1-for-Nipples",
+    "tag-number-2-for-Nipples",
+    "tag-number-3-for-Nipples",
+    "tag-number-4-for-Nipples",
+    "tag-number-5-for-Nipples",
+    "tag-number-6-for-Nipples",
+    "tag-number-7-for-Nipples",
+    "tag-number-8-for-Nipples",
+    "tag-number-9-for-Nipples",
+    "tag-number-10-for-Nipples",
+    "tag-number-11-for-Nipples",
+    "tag-number-12-for-Nipples",
+    "tag-number-13-for-Nipples",
+    "tag-number-14-for-Nipples",
+    "tag-number-15-for-Nipples",
+    "tag-number-16-for-Nipples",
+    "tag-number-17-for-Nipples",
+    "tag-number-18-for-Nipples",
+    "tag-number-19-for-Nipples",
+    "tag-number-20-for-Nipples",
+    "tag-number-21-for-Nipples",
+    "tag-number-22-for-Nipples",
+    "tag-number-23-for-Nipples",
+    "tag-number-24-for-Nipples",
+    "tag-number-25-for-Nipples",
+    "tag-number-26-for-Nipples",
+    "tag-number-27-for-Nipples",
+    "tag-number-28-for-Nipples",
+    "tag-number-29-for-Nipples"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 3",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "frontValveStem": {
+   "variantId": "gid://shopify/ProductVariant/51000000031676",
+   "productId": "gid://shopify/Product/9800000418916",
+   "productHandle": "a-long-product-handle-for-valvestem-4",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title ValveStem",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 4",
+   "sku": "SKU-ValveStem-4-0001",
+   "price": 45904,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_ValveStem_4.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for ValveStem"
+   },
+   "pairingKey": "pair-key-ValveStem-4",
+   "tags": [
+    "tag-number-0-for-ValveStem",
+    "tag-number-1-for-ValveStem",
+    "tag-number-2-for-ValveStem",
+    "tag-number-3-for-ValveStem",
+    "tag-number-4-for-ValveStem",
+    "tag-number-5-for-ValveStem",
+    "tag-number-6-for-ValveStem",
+    "tag-number-7-for-ValveStem",
+    "tag-number-8-for-ValveStem",
+    "tag-number-9-for-ValveStem",
+    "tag-number-10-for-ValveStem",
+    "tag-number-11-for-ValveStem",
+    "tag-number-12-for-ValveStem",
+    "tag-number-13-for-ValveStem",
+    "tag-number-14-for-ValveStem",
+    "tag-number-15-for-ValveStem",
+    "tag-number-16-for-ValveStem",
+    "tag-number-17-for-ValveStem",
+    "tag-number-18-for-ValveStem",
+    "tag-number-19-for-ValveStem",
+    "tag-number-20-for-ValveStem",
+    "tag-number-21-for-ValveStem",
+    "tag-number-22-for-ValveStem",
+    "tag-number-23-for-ValveStem",
+    "tag-number-24-for-ValveStem",
+    "tag-number-25-for-ValveStem",
+    "tag-number-26-for-ValveStem",
+    "tag-number-27-for-ValveStem",
+    "tag-number-28-for-ValveStem",
+    "tag-number-29-for-ValveStem"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 4",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "rearRim": {
+   "variantId": "gid://shopify/ProductVariant/51000000071271",
+   "productId": "gid://shopify/Product/9800000942561",
+   "productHandle": "a-long-product-handle-for-rim-9",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Rim",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 9",
+   "sku": "SKU-Rim-9-0001",
+   "price": 45909,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Rim_9.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Rim"
+   },
+   "pairingKey": "pair-key-Rim-9",
+   "tags": [
+    "tag-number-0-for-Rim",
+    "tag-number-1-for-Rim",
+    "tag-number-2-for-Rim",
+    "tag-number-3-for-Rim",
+    "tag-number-4-for-Rim",
+    "tag-number-5-for-Rim",
+    "tag-number-6-for-Rim",
+    "tag-number-7-for-Rim",
+    "tag-number-8-for-Rim",
+    "tag-number-9-for-Rim",
+    "tag-number-10-for-Rim",
+    "tag-number-11-for-Rim",
+    "tag-number-12-for-Rim",
+    "tag-number-13-for-Rim",
+    "tag-number-14-for-Rim",
+    "tag-number-15-for-Rim",
+    "tag-number-16-for-Rim",
+    "tag-number-17-for-Rim",
+    "tag-number-18-for-Rim",
+    "tag-number-19-for-Rim",
+    "tag-number-20-for-Rim",
+    "tag-number-21-for-Rim",
+    "tag-number-22-for-Rim",
+    "tag-number-23-for-Rim",
+    "tag-number-24-for-Rim",
+    "tag-number-25-for-Rim",
+    "tag-number-26-for-Rim",
+    "tag-number-27-for-Rim",
+    "tag-number-28-for-Rim",
+    "tag-number-29-for-Rim"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 9",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "rearHub": {
+   "variantId": "gid://shopify/ProductVariant/51000000079190",
+   "productId": "gid://shopify/Product/9800001047290",
+   "productHandle": "a-long-product-handle-for-hub-10",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Hub",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 10",
+   "sku": "SKU-Hub-10-0001",
+   "price": 45910,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Hub_10.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Hub"
+   },
+   "pairingKey": "pair-key-Hub-10",
+   "tags": [
+    "tag-number-0-for-Hub",
+    "tag-number-1-for-Hub",
+    "tag-number-2-for-Hub",
+    "tag-number-3-for-Hub",
+    "tag-number-4-for-Hub",
+    "tag-number-5-for-Hub",
+    "tag-number-6-for-Hub",
+    "tag-number-7-for-Hub",
+    "tag-number-8-for-Hub",
+    "tag-number-9-for-Hub",
+    "tag-number-10-for-Hub",
+    "tag-number-11-for-Hub",
+    "tag-number-12-for-Hub",
+    "tag-number-13-for-Hub",
+    "tag-number-14-for-Hub",
+    "tag-number-15-for-Hub",
+    "tag-number-16-for-Hub",
+    "tag-number-17-for-Hub",
+    "tag-number-18-for-Hub",
+    "tag-number-19-for-Hub",
+    "tag-number-20-for-Hub",
+    "tag-number-21-for-Hub",
+    "tag-number-22-for-Hub",
+    "tag-number-23-for-Hub",
+    "tag-number-24-for-Hub",
+    "tag-number-25-for-Hub",
+    "tag-number-26-for-Hub",
+    "tag-number-27-for-Hub",
+    "tag-number-28-for-Hub",
+    "tag-number-29-for-Hub"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 10",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "rearSpokes": {
+   "variantId": "gid://shopify/ProductVariant/51000000087109",
+   "productId": "gid://shopify/Product/9800001152019",
+   "productHandle": "a-long-product-handle-for-spokes-11",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Spokes",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 11",
+   "sku": "SKU-Spokes-11-0001",
+   "price": 45911,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Spokes_11.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Spokes"
+   },
+   "pairingKey": "pair-key-Spokes-11",
+   "tags": [
+    "tag-number-0-for-Spokes",
+    "tag-number-1-for-Spokes",
+    "tag-number-2-for-Spokes",
+    "tag-number-3-for-Spokes",
+    "tag-number-4-for-Spokes",
+    "tag-number-5-for-Spokes",
+    "tag-number-6-for-Spokes",
+    "tag-number-7-for-Spokes",
+    "tag-number-8-for-Spokes",
+    "tag-number-9-for-Spokes",
+    "tag-number-10-for-Spokes",
+    "tag-number-11-for-Spokes",
+    "tag-number-12-for-Spokes",
+    "tag-number-13-for-Spokes",
+    "tag-number-14-for-Spokes",
+    "tag-number-15-for-Spokes",
+    "tag-number-16-for-Spokes",
+    "tag-number-17-for-Spokes",
+    "tag-number-18-for-Spokes",
+    "tag-number-19-for-Spokes",
+    "tag-number-20-for-Spokes",
+    "tag-number-21-for-Spokes",
+    "tag-number-22-for-Spokes",
+    "tag-number-23-for-Spokes",
+    "tag-number-24-for-Spokes",
+    "tag-number-25-for-Spokes",
+    "tag-number-26-for-Spokes",
+    "tag-number-27-for-Spokes",
+    "tag-number-28-for-Spokes",
+    "tag-number-29-for-Spokes"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 11",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "rearNipples": {
+   "variantId": "gid://shopify/ProductVariant/51000000095028",
+   "productId": "gid://shopify/Product/9800001256748",
+   "productHandle": "a-long-product-handle-for-nipples-12",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title Nipples",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 12",
+   "sku": "SKU-Nipples-12-0001",
+   "price": 45912,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_Nipples_12.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for Nipples"
+   },
+   "pairingKey": "pair-key-Nipples-12",
+   "tags": [
+    "tag-number-0-for-Nipples",
+    "tag-number-1-for-Nipples",
+    "tag-number-2-for-Nipples",
+    "tag-number-3-for-Nipples",
+    "tag-number-4-for-Nipples",
+    "tag-number-5-for-Nipples",
+    "tag-number-6-for-Nipples",
+    "tag-number-7-for-Nipples",
+    "tag-number-8-for-Nipples",
+    "tag-number-9-for-Nipples",
+    "tag-number-10-for-Nipples",
+    "tag-number-11-for-Nipples",
+    "tag-number-12-for-Nipples",
+    "tag-number-13-for-Nipples",
+    "tag-number-14-for-Nipples",
+    "tag-number-15-for-Nipples",
+    "tag-number-16-for-Nipples",
+    "tag-number-17-for-Nipples",
+    "tag-number-18-for-Nipples",
+    "tag-number-19-for-Nipples",
+    "tag-number-20-for-Nipples",
+    "tag-number-21-for-Nipples",
+    "tag-number-22-for-Nipples",
+    "tag-number-23-for-Nipples",
+    "tag-number-24-for-Nipples",
+    "tag-number-25-for-Nipples",
+    "tag-number-26-for-Nipples",
+    "tag-number-27-for-Nipples",
+    "tag-number-28-for-Nipples",
+    "tag-number-29-for-Nipples"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 12",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  "rearValveStem": {
+   "variantId": "gid://shopify/ProductVariant/51000000102947",
+   "productId": "gid://shopify/Product/9800001361477",
+   "productHandle": "a-long-product-handle-for-valvestem-13",
+   "title": "Industry Nine Hydra2 Classic Straight Pull Hub with a very long title ValveStem",
+   "variantTitle": "32h / 12x148 Boost / Black / SRAM XD 13",
+   "sku": "SKU-ValveStem-13-0001",
+   "price": 45913,
+   "vendor": "Industry Nine",
+   "image": {
+    "url": "https://cdn.shopify.com/s/files/1/0000/0000/files/some_long_image_name_ValveStem_13.jpg?v=1730000000&width=100&height=100",
+    "altText": "Alt text for ValveStem"
+   },
+   "pairingKey": "pair-key-ValveStem-13",
+   "tags": [
+    "tag-number-0-for-ValveStem",
+    "tag-number-1-for-ValveStem",
+    "tag-number-2-for-ValveStem",
+    "tag-number-3-for-ValveStem",
+    "tag-number-4-for-ValveStem",
+    "tag-number-5-for-ValveStem",
+    "tag-number-6-for-ValveStem",
+    "tag-number-7-for-ValveStem",
+    "tag-number-8-for-ValveStem",
+    "tag-number-9-for-ValveStem",
+    "tag-number-10-for-ValveStem",
+    "tag-number-11-for-ValveStem",
+    "tag-number-12-for-ValveStem",
+    "tag-number-13-for-ValveStem",
+    "tag-number-14-for-ValveStem",
+    "tag-number-15-for-ValveStem",
+    "tag-number-16-for-ValveStem",
+    "tag-number-17-for-ValveStem",
+    "tag-number-18-for-ValveStem",
+    "tag-number-19-for-ValveStem",
+    "tag-number-20-for-ValveStem",
+    "tag-number-21-for-ValveStem",
+    "tag-number-22-for-ValveStem",
+    "tag-number-23-for-ValveStem",
+    "tag-number-24-for-ValveStem",
+    "tag-number-25-for-ValveStem",
+    "tag-number-26-for-ValveStem",
+    "tag-number-27-for-ValveStem",
+    "tag-number-28-for-ValveStem",
+    "tag-number-29-for-ValveStem"
+   ],
+   "selectedOptions": [
+    {
+     "name": "Spoke Count",
+     "value": "32h"
+    },
+    {
+     "name": "Color",
+     "value": "Black"
+    },
+    {
+     "name": "Axle",
+     "value": "12x148"
+    },
+    {
+     "name": "Driver",
+     "value": "XD"
+    }
+   ],
+   "optionalAddonProductGids": [
+    "gid://shopify/Product/9700000000000",
+    "gid://shopify/Product/9700000000013",
+    "gid://shopify/Product/9700000000026",
+    "gid://shopify/Product/9700000000039",
+    "gid://shopify/Product/9700000000052",
+    "gid://shopify/Product/9700000000065"
+   ],
+   "spec_spoke_count": "32",
+   "wheelSize": "29\"",
+   "wheelModel": "Model 13",
+   "selectedColor": "Candy Apple Red",
+   "extras": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+ },
+ "selectedOptionalAddons": {
+  "frontRim": [
+   "gid://shopify/Product/9800000000001"
+  ],
+  "rearRim": [
+   "gid://shopify/Product/9800000000002"
+  ],
+  "rearHub": []
+ },
+ "buildId": "482913",
+ "_ui": {
+  "activeVendor": {
+   "frontRim": "Industry Nine",
+   "rearRim": "Industry Nine"
+  },
+  "valveStemExplicitlyRemoved": {
+   "front": false,
+   "rear": false
+  },
+  "step2AutoSelected": {
+   "frontRim": true,
+   "rearRim": true
+  }
+ }
+}
