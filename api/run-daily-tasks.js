@@ -7,6 +7,7 @@ const { renderReport: renderAbandonedReport } = require('../lib/abandoned-email'
 const abandonedFlags = require('../lib/abandoned-flags');
 const { partsFingerprint } = require('../lib/abandoned-log');
 const { runPresetPriceCheck, renderSection: renderPresetSection } = require('../lib/preset-price-check');
+const { isSystemHub, collapseProductLine, systemHubsLine } = require('../lib/data-health');
 
 // --- SHARED CONFIGURATION ---
 const {
@@ -78,7 +79,7 @@ async function sendAbandonedBuildReport() {
 
 async function runDataAudit() {
     console.log("Running Task: Data Audit...");
-    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 50, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:nipple'") { edges { node { id title status tags onlineStoreUrl productType vendor variants(first: 50) { edges { node { id title metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
+    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 50, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:nipple'") { edges { node { id title status tags onlineStoreUrl productType vendor variantsCount { count } variants(first: 50) { edges { node { id title metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
     const client = new shopify.clients.Graphql({ session: getSession() });
     let allProducts = [], hasNextPage = true, cursor = null;
     do {
@@ -89,6 +90,7 @@ async function runDataAudit() {
     } while (hasNextPage);
     
     let errors = { unpublished: [], missingData: [] };
+    const systemHubsSkipped = [];   // System hubs: the seven hub geometry fields are not checked (spoke lengths for System builds come from the I9 chart)
     
     for (const product of allProducts) {
         if (product.tags.includes('audit:exclude')) continue;
@@ -98,6 +100,8 @@ async function runDataAudit() {
         
         const productMetafields = Object.fromEntries(product.metafields.edges.map(e => [e.node.key, e.node.value]));
         const productErrors = [];
+        const systemHub = isSystemHub(product);
+        if (systemHub) systemHubsSkipped.push(product.title);
         const pTitleLower = product.title.toLowerCase(); 
         const isReserveInfinity = pTitleLower.includes('reserve infinity disc turbulent aero');
 
@@ -143,6 +147,7 @@ async function runDataAudit() {
                     'hub_flange_offset_left', 'hub_flange_offset_right'
                 ];
                 hubDimensions.forEach(key => {
+                    if (systemHub) return;
                     if (!getMetafield(vM, key)) {
                         productErrors.push(`Variant "${v.title}" missing: \`${key}\` (No fallback found on Product level)`);
                     }
@@ -169,7 +174,7 @@ async function runDataAudit() {
                 }
 
                 // Straight Pull / System Offset Rule
-                if (['Straight Pull', 'System'].includes(hubType)) {
+                if (['Straight Pull', 'System'].includes(hubType) && !systemHub) {
                     if (!vM['hub_sp_offset_spoke_hole_left']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_left\``);
                     if (!vM['hub_sp_offset_spoke_hole_right']) productErrors.push(`Variant "${v.title}" missing: \`hub_sp_offset_spoke_hole_right\``);
                 }
@@ -215,7 +220,7 @@ async function runDataAudit() {
             if (!productMetafields['rim_compatible_nipple_types']) productErrors.push(`Missing Product Field: \`rim_compatible_nipple_types\``);
         }
 
-        if (productErrors.length > 0) errors.missingData.push(`- **${product.title}**:<br><ul>${productErrors.map(e => `<li>${e}</li>`).join('')}</ul>`);
+        if (productErrors.length > 0) errors.missingData.push(collapseProductLine(product.title, productErrors, product.variants.edges.length, product.variantsCount && product.variantsCount.count));
     }
     
     // Preset price drift (read only; a clean result adds nothing, a read failure becomes one line)
@@ -229,6 +234,7 @@ async function runDataAudit() {
         if (errors.unpublished.length > 0) emailHtml += `<hr><h2>Unpublished (${errors.unpublished.length})</h2><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
         if (errors.missingData.length > 0) emailHtml += `<hr><h2>Missing Data (${errors.missingData.length})</h2><ul>${errors.missingData.map(e => `<li>${e}</li>`).join('')}</ul>`;
         emailHtml += renderPresetSection(presetResult);
+        emailHtml += systemHubsLine(systemHubsSkipped);
         await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: REPORT_EMAIL_TO, subject: `Data Health Report: ${totalIssues} Issues Found`, html: emailHtml });
     }
     return { status: 'success', message: `Audit complete. Found ${totalIssues} issues.` };
