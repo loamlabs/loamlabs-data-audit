@@ -60,6 +60,26 @@ test('shape: arrays, text, empty, wrong build type, unknown field, wrong field t
   await bad(JSON.parse('{"buildType":"Rear","components":{},"specs":{},"_ui":{"__proto__":{"x":1}}}'), /forbidden/);
 });
 
+// ---------- 2b. components entries that are ARRAYS (found live Nov 15: every real build has frontRequiredAddons / rearRequiredAddons as an array) ----------
+test('array entries: the REAL Standard and System states from Release 41 save and open back identical; an add-on object inside the array is accepted', async () => {
+  const redis = fakeRedis(); const h = S.createSaveHandler({ redis }); const g = S.createGetHandler({ redis });
+  for (const n of ['real-standard-s41', 'real-system-s41']) {
+    const body = fx(n); assert.ok(Array.isArray(body.components.frontRequiredAddons), 'fixture has the array entry');
+    const r = await save(h, body); assert.equal(r.code, 200, JSON.stringify(r.body)); const back = await open(g, r.body.shareId, LIVE); assert.equal(back.code, 200); assert.deepEqual(back.body, body);
+  }
+  const withAddon = fx('real-standard-s41'); withAddon.components.frontRequiredAddons = [{ variantId: '123', handle: 'spoke-color-black', title: 'Spoke color: Black', priceCents: 1000 }, { variantId: '456', title: 'Painting fee' }];
+  const r2 = await save(h, withAddon); assert.equal(r2.code, 200, JSON.stringify(r2.body)); assert.deepEqual((await open(g, r2.body.shareId, LIVE)).body, withAddon);
+  const rear = fx('real-standard-s41'); rear.components.rearRequiredAddons = [{ title: 'x' }]; assert.equal((await save(h, rear)).code, 200);
+});
+test('array entries: still refused when the array holds text, numbers, null, a nested array or a bad key; other entries stay strict', async () => {
+  const h = S.createSaveHandler({ redis: fakeRedis() }); const mk = (v, key = 'frontRequiredAddons') => { const b = fx('real-standard-s41'); b.components[key] = v; return b; };
+  for (const v of [['a', 'b'], [1, 2], [null], [[{}]], [{}, 'x'], 'text', 5, true]) { const r = await save(h, mk(v)); assert.equal(r.code, 400, JSON.stringify(v)); assert.match(r.body.error, /components/); }
+  assert.equal((await save(h, mk([], 'rimFront'))).code, 400); assert.equal((await save(h, mk([], 'front'))).code, 400);
+  const badKey = JSON.parse('{"buildType":"Rear","components":{"frontRequiredAddons":[{"__proto__":{"x":1}}]},"specs":{}}'); const r = await save(h, badKey); assert.equal(r.code, 400); assert.match(r.body.error, /forbidden/);
+  let deep = {}; let p = deep; for (let i = 0; i < 20; i++) { p.a = {}; p = p.a; } const d = await save(h, mk([deep])); assert.equal(d.code, 400); assert.match(d.body.error, /deeply/);
+  const big = mk([{ x: 'x'.repeat(S.MAX_BYTES) }]); assert.equal((await save(h, big)).code, 413);
+});
+
 // ---------- 3. rate limit ----------
 test('rate limit: 60 saves an hour per IP then 429; another IP is unaffected; the next hour starts fresh; a Redis problem never blocks', async () => {
   let clock = 1_800_000_000_000; const redis = fakeRedis(); const h = S.createSaveHandler({ redis, now: () => clock });
