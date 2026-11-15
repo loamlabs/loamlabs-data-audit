@@ -6,6 +6,7 @@ const { Redis } = require('@upstash/redis');
 const { renderReport: renderAbandonedReport } = require('../lib/abandoned-email');
 const abandonedFlags = require('../lib/abandoned-flags');
 const { partsFingerprint } = require('../lib/abandoned-log');
+const { runPresetPriceCheck, renderSection: renderPresetSection } = require('../lib/preset-price-check');
 
 // --- SHARED CONFIGURATION ---
 const {
@@ -217,13 +218,17 @@ async function runDataAudit() {
         if (productErrors.length > 0) errors.missingData.push(`- **${product.title}**:<br><ul>${productErrors.map(e => `<li>${e}</li>`).join('')}</ul>`);
     }
     
-    const totalIssues = errors.unpublished.length + errors.missingData.length;
+    // Preset price drift (read only; a clean result adds nothing, a read failure becomes one line)
+    const presetResult = await runPresetPriceCheck(client);
+    console.log(`Preset price check: ${presetResult.checked} presets, ${presetResult.findings.length} findings.`);
+    const totalIssues = errors.unpublished.length + errors.missingData.length + presetResult.findings.length;
     console.log(`Data Audit complete. Found ${totalIssues} total issues.`);
     
     if (totalIssues > 0) {
         let emailHtml = `<h1>Data Health Report (${totalIssues} issues)</h1>`;
         if (errors.unpublished.length > 0) emailHtml += `<hr><h2>Unpublished (${errors.unpublished.length})</h2><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
         if (errors.missingData.length > 0) emailHtml += `<hr><h2>Missing Data (${errors.missingData.length})</h2><ul>${errors.missingData.map(e => `<li>${e}</li>`).join('')}</ul>`;
+        emailHtml += renderPresetSection(presetResult);
         await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: REPORT_EMAIL_TO, subject: `Data Health Report: ${totalIssues} Issues Found`, html: emailHtml });
     }
     return { status: 'success', message: `Audit complete. Found ${totalIssues} issues.` };
