@@ -7,7 +7,7 @@ const { renderReport: renderAbandonedReport } = require('../lib/abandoned-email'
 const abandonedFlags = require('../lib/abandoned-flags');
 const { partsFingerprint } = require('../lib/abandoned-log');
 const { runPresetPriceCheck, renderSection: renderPresetSection } = require('../lib/preset-price-check');
-const { isSystemHub, collapseProductLine, systemHubsLine } = require('../lib/data-health');
+const { isSystemHub, collapseProductLine, systemHubsLine, loadRemainingVariants } = require('../lib/data-health');
 
 // --- SHARED CONFIGURATION ---
 const {
@@ -79,7 +79,7 @@ async function sendAbandonedBuildReport() {
 
 async function runDataAudit() {
     console.log("Running Task: Data Audit...");
-    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 50, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:nipple'") { edges { node { id title status tags onlineStoreUrl productType vendor variantsCount { count } variants(first: 50) { edges { node { id title metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
+    const PAGINATED_PRODUCTS_QUERY = `query($cursor: String) { products(first: 50, after: $cursor, query: "tag:'component:rim' OR tag:'component:hub' OR tag:'component:spoke' OR tag:'component:nipple'") { edges { node { id title status tags onlineStoreUrl productType vendor variantsCount { count } variants(first: 50) { pageInfo { hasNextPage endCursor } edges { node { id title metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } } metafields(first: 50, namespace: "custom") { edges { node { key value } } } } } pageInfo { hasNextPage endCursor } } }`;
     const client = new shopify.clients.Graphql({ session: getSession() });
     let allProducts = [], hasNextPage = true, cursor = null;
     do {
@@ -88,6 +88,8 @@ async function runDataAudit() {
         allProducts.push(...pageData.edges.map(edge => edge.node));
         hasNextPage = pageData.pageInfo.hasNextPage; cursor = pageData.pageInfo.endCursor;
     } while (hasNextPage);
+    // The first request carries 50 variants per product; products with more get the rest here (a hub with 84 variants was only half checked before).
+    for (const p of allProducts) await loadRemainingVariants(client, p);
     
     let errors = { unpublished: [], missingData: [] };
     const systemHubsSkipped = [];   // System hubs: the seven hub geometry fields are not checked (spoke lengths for System builds come from the I9 chart)

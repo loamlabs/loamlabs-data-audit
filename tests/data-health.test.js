@@ -42,7 +42,7 @@ function loadAudit(fakeProducts) {
   Object.assign(process.env, { SHOPIFY_STORE_DOMAIN: 'x.myshopify.com', SHOPIFY_ADMIN_API_TOKEN: 't', RESEND_API_KEY: 'k', REPORT_EMAIL_TO: 'to@example.invalid', UPSTASH_REDIS_REST_URL: 'https://example.invalid', UPSTASH_REDIS_REST_TOKEN: 't', CRON_SECRET: 's' });
   const sent = []; const queries = [];
   const fakes = {
-    '@shopify/shopify-api': { LATEST_API_VERSION: '2024-04', shopifyApi: () => ({ clients: { Graphql: class { async query({ data }) { queries.push(data.query); if (/i9-preset/.test(data.query)) return { body: { data: { products: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: [] } } } }; return { body: { data: { products: { edges: fakeProducts.map((node) => ({ node })), pageInfo: { hasNextPage: false, endCursor: null } } } } }; } } } }) },
+    '@shopify/shopify-api': { LATEST_API_VERSION: '2024-04', shopifyApi: () => ({ clients: { Graphql: class { async query({ data }) { queries.push(data.query); if (data.variables && data.variables.id && /variants\(first: 50, after/.test(data.query)) { const p = fakeProducts.find((x) => x.id === data.variables.id); return { body: { data: { product: { variants: { pageInfo: { hasNextPage: false, endCursor: null }, edges: p.__more || [] } } } } } }; if (/i9-preset/.test(data.query)) return { body: { data: { products: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: [] } } } }; return { body: { data: { products: { edges: fakeProducts.map((node) => ({ node })), pageInfo: { hasNextPage: false, endCursor: null } } } } }; } } } }) },
     '@shopify/shopify-api/adapters/node': {},
     resend: { Resend: class { constructor() { this.emails = { send: async (m) => { sent.push(m); return { id: 'x' }; } }; } } },
     '@upstash/redis': { Redis: class { } },
@@ -80,4 +80,21 @@ test('a clean System hub adds nothing about hubs to the email (only the unrelate
   const a = loadAudit([hubOk]); await a.run();
   assert.equal(a.sent.length, 1, 'only the preset line (no presets found) can send; nothing about hubs');
   assert.doesNotMatch(a.sent[0].html, /SYSTEM Rear Hub[^<]*\*\*:/);
+});
+
+test('paging: a product with more than 50 variants gets ALL of them audited (the rest are fetched with the cursor), and the "first 50" note never appears', async () => {
+  const mk = (n, o) => Array.from({ length: n }, (_, i) => variant('v' + i, o));
+  const big = { id: 'p-big', title: 'Big Classic Hub', status: 'ACTIVE', onlineStoreUrl: 'https://x/b', tags: ['component:hub'], productType: 'Hub', vendor: 'DT', variantsCount: { count: 60 }, metafields: mf({ hub_type: 'Classic Flange' }),
+    variants: { pageInfo: { hasNextPage: true, endCursor: 'c1' }, edges: mk(50) }, __more: mk(10).map((e, i) => ({ node: { ...e.node, title: 'w' + i } })) };
+  const a = loadAudit([big]); await a.run();
+  assert.ok(a.queries.some((x) => /variants\(first: 50, after/.test(x)), 'a second request fetched the rest');
+  const html = a.sent[0].html; const line = new RegExp("<li>- \\*\\*Big Classic Hub\\*\\*[^<]*</li>").exec(html); assert.ok(line);
+  assert.match(line[0], /missing on all 60 variants/); assert.doesNotMatch(line[0], /only the first/);
+});
+test('loadRemainingVariants: follows the cursor until the last page, does nothing when there is no next page, only reads', async () => {
+  const calls = [];
+  const client = { async query({ data }) { calls.push(data); const first = data.variables.cursor === 'c1'; return { body: { data: { product: { variants: { pageInfo: { hasNextPage: first, endCursor: first ? 'c2' : null }, edges: [{ node: { id: first ? 'b' : 'c' } }] } } } } }; } };
+  const p = { id: 'P', variants: { pageInfo: { hasNextPage: true, endCursor: 'c1' }, edges: [{ node: { id: 'a' } }] } };
+  await H.loadRemainingVariants(client, p); assert.deepEqual(p.variants.edges.map((e) => e.node.id), ['a', 'b', 'c']); assert.equal(calls.length, 2); assert.ok(calls.every((c) => !/mutation/i.test(c.query)));
+  const q = { id: 'Q', variants: { pageInfo: { hasNextPage: false, endCursor: null }, edges: [{ node: { id: 'a' } }] } }; await H.loadRemainingVariants(client, q); assert.equal(q.variants.edges.length, 1); assert.equal(calls.length, 2);
 });
