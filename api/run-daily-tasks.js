@@ -7,6 +7,7 @@ const { renderReport: renderAbandonedReport } = require('../lib/abandoned-email'
 const abandonedFlags = require('../lib/abandoned-flags');
 const { partsFingerprint } = require('../lib/abandoned-log');
 const { runPresetPriceCheck, renderSection: renderPresetSection } = require('../lib/preset-price-check');
+const { shareSavesLine } = require('../lib/share-build');
 const { isSystemHub, collapseProductLine, systemHubsLine, loadRemainingVariants } = require('../lib/data-health');
 
 // --- SHARED CONFIGURATION ---
@@ -228,7 +229,9 @@ async function runDataAudit() {
     // Preset price drift (read only; a clean result adds nothing, a read failure becomes one line)
     const presetResult = await runPresetPriceCheck(client);
     console.log(`Preset price check: ${presetResult.checked} presets, ${presetResult.findings.length} findings.`);
-    const totalIssues = errors.unpublished.length + errors.missingData.length + presetResult.findings.length;
+    // Share Build: a line only when yesterday's (UTC day) saves went above the alert level
+    const shareLine = await shareSavesLine(redis, Date.now() - 86400000);
+    const totalIssues = errors.unpublished.length + errors.missingData.length + presetResult.findings.length + (shareLine ? 1 : 0);
     console.log(`Data Audit complete. Found ${totalIssues} total issues.`);
     
     if (totalIssues > 0) {
@@ -236,6 +239,7 @@ async function runDataAudit() {
         if (errors.unpublished.length > 0) emailHtml += `<hr><h2>Unpublished (${errors.unpublished.length})</h2><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
         if (errors.missingData.length > 0) emailHtml += `<hr><h2>Missing Data (${errors.missingData.length})</h2><ul>${errors.missingData.map(e => `<li>${e}</li>`).join('')}</ul>`;
         emailHtml += renderPresetSection(presetResult);
+        if (shareLine) emailHtml += `<hr><h2>Share Build (1)</h2><p>${shareLine}</p>`;
         emailHtml += systemHubsLine(systemHubsSkipped);
         await resend.emails.send({ from: 'LoamLabs Audit <info@loamlabsusa.com>', to: REPORT_EMAIL_TO, subject: `Data Health Report: ${totalIssues} Issues Found`, html: emailHtml });
     }
