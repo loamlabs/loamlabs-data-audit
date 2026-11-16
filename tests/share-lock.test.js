@@ -67,7 +67,7 @@ test('quote marks, equals signs, ampersands and other punctuation are NOT refuse
   }
 });
 
-test('all ' + FIXTURES.length + ' real saved builds still contain no < or > and are still accepted and open back identical', async () => {
+test('all ' + FIXTURES.length + ' real saved builds (keys and text) still contain no < or > and are still accepted and open back identical', async () => {
   for (const name of FIXTURES) {
     const b = fx(name);
     assert.equal(S.hasAngle(b), false, name + ' has no angle brackets');
@@ -83,7 +83,22 @@ test('all ' + FIXTURES.length + ' real saved builds still contain no < or > and 
   }
 });
 
-test('angle brackets in a key name are not looked at (only text values, as asked)', () => {
-  assert.equal(S.hasAngle({ '<k>': 'fine' }), false);
+test('key names: < or > in a key is refused too (top level, nested, inside an array entry); nothing is saved', async () => {
+  const places = {
+    specs: (b) => { b.specs['<img src=x onerror=alert(1)>'] = 'x'; },
+    nested: (b) => { b.system = { a: { '<b>': 1 } }; },
+    array: (b) => { b.components.frontSpokes = [{ 'x>': 1 }]; },
+    ui: (b) => { b._ui = { '<script>': true }; },
+  };
+  for (const [where, put] of Object.entries(places)) {
+    const redis = fakeRedis(); const h = S.createSaveHandler({ redis });
+    const b = fx('real-standard-s41'); put(b);
+    const r = await save(h, b);
+    assert.equal(r.code, 400, where);
+    assert.match(r.body.error, /not allowed/);
+    assert.deepEqual([...redis.store.keys()].filter((k) => !k.startsWith('rl:')), [], where);
+  }
+  assert.equal(S.hasAngle({ '<k>': 'fine' }), true);
   assert.equal(S.hasAngle({ k: ['a', { z: 'b>' }] }), true);
+  assert.equal(S.hasAngle({ 'size 29"': '29"', 'a=b': 'c' }), false);
 });
