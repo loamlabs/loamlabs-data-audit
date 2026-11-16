@@ -115,7 +115,7 @@ test('collision: an existing id is never overwritten; the next id is tried; six 
   const r = await save(h, fx('in-progress-step1')); assert.equal(r.code, 200); assert.equal(r.body.shareId, 'BBBBBBBBBB');
   assert.deepEqual(JSON.parse(redis.store.get('shared_build:AAAAAAAAAA')), { v: 2, build: { keep: 'me' }, meta: {} });
   assert.ok(redis.calls.some((c) => c[0] === 'set' && c[2].nx === true), 'set uses NX');
-  const h2 = S.createSaveHandler({ redis, randomInt: () => 0 }); const r2 = await save(h2, fx('in-progress-step1')); assert.equal(r2.code, 500);
+  const h2 = S.createSaveHandler({ redis, randomInt: () => 0 }); const r2 = await save(h2, fx('standard-rear-only'));   // a different build (the same one would be de-duplicated) assert.equal(r2.code, 500);
   assert.deepEqual(JSON.parse(redis.store.get('shared_build:AAAAAAAAAA')), { v: 2, build: { keep: 'me' }, meta: {} });
 });
 
