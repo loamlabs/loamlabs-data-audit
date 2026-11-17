@@ -8,7 +8,7 @@ const abandonedFlags = require('../lib/abandoned-flags');
 const { partsFingerprint } = require('../lib/abandoned-log');
 const { runPresetPriceCheck, renderSection: renderPresetSection } = require('../lib/preset-price-check');
 const { shareSavesLine } = require('../lib/share-build');
-const { isSystemHub, collapseProductLine, systemHubsLine, loadRemainingVariants } = require('../lib/data-health');
+const { isSystemHub, collapseProductLine, systemHubsLine, loadRemainingVariants, geometryReviewLine } = require('../lib/data-health');
 
 // --- SHARED CONFIGURATION ---
 const {
@@ -92,7 +92,7 @@ async function runDataAudit() {
     // The first request carries 50 variants per product; products with more get the rest here (a hub with 84 variants was only half checked before).
     for (const p of allProducts) await loadRemainingVariants(client, p);
     
-    let errors = { unpublished: [], missingData: [] };
+    let errors = { unpublished: [], missingData: [], geometryReview: [] };
     const systemHubsSkipped = [];   // System hubs: the seven hub geometry fields are not checked (spoke lengths for System builds come from the I9 chart)
     
     for (const product of allProducts) {
@@ -223,6 +223,12 @@ async function runDataAudit() {
             if (!productMetafields['rim_compatible_nipple_types']) productErrors.push(`Missing Product Field: \`rim_compatible_nipple_types\``);
         }
 
+        // Hub geometry: a variant value that differs from the product value (review line; nothing when no variant carries its own number)
+        if (product.tags.includes('component:hub') && !systemHub) {
+            const gl = geometryReviewLine(product.title, productMetafields, product.variants.edges.map(({ node: v }) => ({ title: v.title, metafields: Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value])) })));
+            if (gl) errors.geometryReview.push(gl);
+        }
+
         if (productErrors.length > 0) errors.missingData.push(collapseProductLine(product.title, productErrors, product.variants.edges.length, product.variantsCount && product.variantsCount.count));
     }
     
@@ -231,13 +237,14 @@ async function runDataAudit() {
     console.log(`Preset price check: ${presetResult.checked} presets, ${presetResult.findings.length} findings.`);
     // Share Build: a line only when yesterday's (UTC day) saves went above the alert level
     const shareLine = await shareSavesLine(redis, Date.now() - 86400000);
-    const totalIssues = errors.unpublished.length + errors.missingData.length + presetResult.findings.length + (shareLine ? 1 : 0);
+    const totalIssues = errors.unpublished.length + errors.missingData.length + presetResult.findings.length + errors.geometryReview.length + (shareLine ? 1 : 0);
     console.log(`Data Audit complete. Found ${totalIssues} total issues.`);
     
     if (totalIssues > 0) {
         let emailHtml = `<h1>Data Health Report (${totalIssues} issues)</h1>`;
         if (errors.unpublished.length > 0) emailHtml += `<hr><h2>Unpublished (${errors.unpublished.length})</h2><ul>${errors.unpublished.map(e => `<li>${e}</li>`).join('')}</ul>`;
         if (errors.missingData.length > 0) emailHtml += `<hr><h2>Missing Data (${errors.missingData.length})</h2><ul>${errors.missingData.map(e => `<li>${e}</li>`).join('')}</ul>`;
+        if (errors.geometryReview.length > 0) emailHtml += `<hr><h2>Hub geometry: variant differs from product (${errors.geometryReview.length})</h2><p>The order webhook reads the variant value first. If the variant number is the intended per-spacing value, remove or update the product-level copy; if the product copy is the right one, fix the variant.</p><ul>${errors.geometryReview.map(e => `<li>${e}</li>`).join('')}</ul>`;
         emailHtml += renderPresetSection(presetResult);
         if (shareLine) emailHtml += `<hr><h2>Share Build (1)</h2><p>${shareLine}</p>`;
         emailHtml += systemHubsLine(systemHubsSkipped);
