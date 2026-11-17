@@ -8,7 +8,7 @@ const abandonedFlags = require('../lib/abandoned-flags');
 const { partsFingerprint } = require('../lib/abandoned-log');
 const { runPresetPriceCheck, renderSection: renderPresetSection } = require('../lib/preset-price-check');
 const { shareSavesLine } = require('../lib/share-build');
-const { isSystemHub, collapseProductLine, systemHubsLine, loadRemainingVariants, geometryReviewLine } = require('../lib/data-health');
+const { isSystemHub, collapseProductLine, systemHubsLine, loadRemainingVariants, geometryReviewLine, weightIssueLine } = require('../lib/data-health');
 
 // --- SHARED CONFIGURATION ---
 const {
@@ -114,10 +114,9 @@ async function runDataAudit() {
         product.variants.edges.forEach(({ node: v }) => {
             const vM = Object.fromEntries(v.metafields.edges.map(e => [e.node.key, e.node.value]));
             
-            // Universal Weight Check
-            if (!getMetafield(vM, 'weight_g')) {
-                productErrors.push(`Variant "${v.title}" missing: \`weight_g\` (No fallback found on Product level)`);
-            }
+            // Weight check: rim, hub and nipple variants need their OWN weight_g (no product fallback); placeholders and watcher-ignore products are skipped; spokes keep the base-weight rule
+            const weightLine = weightIssueLine(product, vM, productMetafields, v.title);
+            if (weightLine) productErrors.push(weightLine);
 
             // --- 2. COMPONENT: RIM (VARIANT CHECKS) ---
             if (product.tags.includes('component:rim')) {
